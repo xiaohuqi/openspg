@@ -1,0 +1,34 @@
+namespace TEST
+
+STD.Standard(标准类型): StandardType
+    spreadable: True
+    regular: ^([0-9A-HJ-NPQRTUWXY]{2}\\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\\d{14})$
+
+Entity3(实体3): EntityType
+
+Entity2(实体2): EntityType
+
+Entity1(实体1): EntityType
+    properties:
+        entityProperty(示例属性): Entity2
+        predictProperty(预测属性): Entity3
+
+Concept2(概念2): ConceptType
+    hypernymPredicate: isA
+
+Concept1(概念1): ConceptType
+    hypernymPredicate: isA
+    relations:
+        CAU#leadTo(导致): Concept2
+
+CenterEvent(中心事件类型): EventType
+    properties:
+        subject(主体): Entity1
+        basicTextProperty(Text类型属性): Text
+        basicIntegerProperty(Integer类型属性): Integer
+        basicFloatProperty(Float类型属性): Float
+        standardProperty(标准类型属性): STD.Standard
+        conceptProperty(概念类型属性): Concept1
+        eventProperty(事件类型属性): CenterEvent
+    relations:
+        entityRelation(实体类型关系): Entity2

@@ -13,35 +13,22 @@ from typing import Union, Type, List
 
 import networkx as nx
 
-from knext import rest
-
 from knext.common.restable import RESTable
 from knext.common.runnable import Runnable
 
 
 class Chain(Runnable, RESTable):
+    """
+    Base class for creating structured sequences of calls to components.
+    """
 
+    """The execution process of Chain, represented by a dag structure."""
     dag: nx.DiGraph
 
     def invoke(self, input=None, **kwargs):
         from knext.chain.builder_chain import BuilderChain
 
         return BuilderChain.from_chain(self).invoke(**kwargs)
-
-    @property
-    def upstream_types(self) -> Type["RESTable"]:
-        return self.first.upstream_types
-
-    @property
-    def downstream_types(self) -> Type["RESTable"]:
-        return self.last.downstream_types
-
-    @classmethod
-    def from_rest(cls, node: rest.Node):
-        pass
-
-    def submit(self):
-        raise ValueError("Not support yet.")
 
     def __rshift__(
         self,

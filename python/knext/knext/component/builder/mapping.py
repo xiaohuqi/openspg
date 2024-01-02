@@ -15,7 +15,7 @@ from typing import Union, Dict, List, Tuple, Sequence, Optional
 from knext import rest
 from knext.common.runnable import Input, Output
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeName, PropertyName
 from knext.component.builder.base import Mapping
 from knext.operator.op import LinkOp, FuseOp, PredictOp
 from knext.operator.spg_record import SPGRecord
@@ -33,8 +33,32 @@ class PredictingStrategyEnum(str, Enum):
     pass
 
 
+FusingStrategy = Union[FusingStrategyEnum, FuseOp]
+LinkingStrategy = Union[LinkingStrategyEnum, LinkOp]
+PredictingStrategy = Union[PredictingStrategyEnum, PredictOp]
+
+
 class SPGTypeMapping(Mapping):
-    """A Process Component that mapping data to entity/event/concept/standard type.
+    """A Builder Component that mapping source field[UnresolvedRecord with column names and values]
+    to target field[SPGRecord with entity/event/concept/standard type and properties].
+
+    The UnresolvedRecord will go through the following execution processes and be converted into SPGRecord:
+    1. Field Mapping
+        Map the source field data to the schema attribute field of the target type.
+    2. Object Linking
+        Traverse all mapped properties.
+        If the object type of property is not `BasicType`, execute the default `IDEqual` linking strategy:
+            Query with the property value as the `id` of the object SPGType instance.
+            If a corresponding SPGType instance exists, establish an SPO relationship between subject and object.
+
+        If a LinkOp is bound to the object type, the chain pointing process of generating objects based on attribute values is executed.
+        Based on the property values, link to
+        Establish an SPO relationship between the current subject type and the attribute type based on the attribute values.
+
+    3. Predicate Predicting
+        For the linked properties
+    4. Subject Fusing
+
 
     Args:
         spg_type_name: The SPG type name of subject import from SPGTypeHelper.
@@ -47,20 +71,18 @@ class SPGTypeMapping(Mapping):
             .add_predicting_field(DEFAULT.App.useCert)
     """
 
-    """The SPG type name of subject import from SPGTypeHelper."""
-    spg_type_name: Union[str, SPGTypeHelper]
+    """The target subject type name of this mapping component."""
+    spg_type_name: SPGTypeName
 
     mapping: Dict[str, str] = dict()
 
     filters: List[Tuple[str, str]] = list()
 
-    subject_fusing_strategy: Optional[Union[FusingStrategyEnum, FuseOp]] = None
+    subject_fusing_strategy: Optional[FusingStrategy] = None
 
-    object_linking_strategies: Dict[str, Union[LinkingStrategyEnum, LinkOp]] = dict()
+    object_linking_strategies: Dict[str, LinkingStrategy] = dict()
 
-    predicate_predicting_strategies: Dict[
-        str, Union[PredictingStrategyEnum, PredictOp]
-    ] = dict()
+    predicate_predicting_strategies: Dict[str, PredictingStrategy] = dict()
 
     @property
     def input_types(self) -> Input:
@@ -70,7 +92,7 @@ class SPGTypeMapping(Mapping):
     def output_types(self) -> Output:
         return SPGRecord
 
-    def set_fusing_strategy(self, fusing_strategy: FuseOp):
+    def set_fusing_strategy(self, fusing_strategy: FusingStrategy):
         """"""
         self.subject_fusing_strategy = fusing_strategy
         return self
@@ -78,8 +100,8 @@ class SPGTypeMapping(Mapping):
     def add_mapping_field(
         self,
         source_field: str,
-        target_field: Union[str, PropertyHelper],
-        linking_strategy: Union[LinkingStrategyEnum, LinkOp] = None,
+        target_field: PropertyName,
+        linking_strategy: LinkingStrategy = None,
     ):
         """Adds a field mapping from source data to property of spg_type.
 
@@ -94,8 +116,8 @@ class SPGTypeMapping(Mapping):
 
     def add_predicting_field(
         self,
-        field: Union[str, PropertyHelper],
-        predicting_strategy: PredictOp = None,
+        field: PropertyName,
+        predicting_strategy: PredictingStrategy = None,
     ):
         self.predicate_predicting_strategies[field] = predicting_strategy
         return self
@@ -163,9 +185,14 @@ class SPGTypeMapping(Mapping):
                     operator_config=predicting_strategy.to_rest()
                 )
             elif not predicting_strategy:
-                if (self.spg_type_name, predicate_name) in PredictOp.bind_schemas:
+                object_type_name = spg_type.properties[predicate_name].object_type_name
+                if (
+                    self.spg_type_name,
+                    predicate_name,
+                    object_type_name,
+                ) in PredictOp.bind_schemas:
                     op_name = PredictOp.bind_schemas[
-                        (self.spg_type_name, predicate_name)
+                        (self.spg_type_name, predicate_name, object_type_name)
                     ]
                     op = PredictOp.by_name(op_name)()
                     strategy_config = rest.OperatorPredictingConfig(
@@ -178,7 +205,11 @@ class SPGTypeMapping(Mapping):
                     f"Invalid predicting_strategy [{predicting_strategy}]."
                 )
             if strategy_config:
-                predicting_configs.append(strategy_config)
+                predicting_configs.append(
+                    rest.PredictingConfig(
+                        target=predicate_name, predicting_config=strategy_config
+                    )
+                )
 
         if isinstance(self.subject_fusing_strategy, FuseOp):
             fusing_config = rest.OperatorFusingConfig(
@@ -211,13 +242,15 @@ class SPGTypeMapping(Mapping):
         )
 
     @classmethod
-    def from_rest(cls, node: rest.Node):
+    def from_rest(cls, rest_model):
         raise NotImplementedError(
-            f"`invoke` method is not currently supported for {cls.__name__}."
+            f"`from_rest` method is not currently supported for {cls.__name__}."
         )
 
     def submit(self):
-        pass
+        raise NotImplementedError(
+            f"`submit` method is not currently supported for {self.__class__.__name__}."
+        )
 
 
 class RelationMapping(Mapping):
@@ -237,10 +270,10 @@ class RelationMapping(Mapping):
 
     """
 
-    """The SPG type names of (subject, predicate, object) triplet imported from SPGTypeHelper and PropertyHelper."""
-    subject_name: Union[str, SPGTypeHelper]
-    predicate_name: Union[str, PropertyHelper]
-    object_name: Union[str, SPGTypeHelper]
+    """The SPG type names of (subject, predicate, object) triplet."""
+    subject_name: SPGTypeName
+    predicate_name: PropertyName
+    object_name: SPGTypeName
 
     mapping: Dict[str, str] = dict()
 
@@ -313,17 +346,17 @@ class SubGraphMapping(Mapping):
     """
 
     """"""
-    spg_type_name: Union[str, SPGTypeHelper]
+    spg_type_name: SPGTypeName
 
     mapping: Dict[str, str] = dict()
 
     filters: List[Tuple[str, str]] = list()
 
-    subject_fusing_strategy: Optional[FuseOp] = None
+    subject_fusing_strategy: Optional[FusingStrategy] = None
 
-    predicate_predicting_strategies: Dict[str, PredictOp] = dict()
+    predicate_predicting_strategies: Dict[str, PredictingStrategy] = dict()
 
-    object_fuse_strategies: Dict[str, FuseOp] = dict()
+    object_fuse_strategies: Dict[str, FusingStrategy] = dict()
 
     @property
     def input_types(self) -> Input:
@@ -333,21 +366,25 @@ class SubGraphMapping(Mapping):
     def output_types(self) -> Output:
         return SPGRecord
 
-    def set_fusing_strategy(self, fusing_strategy: FuseOp):
+    def set_fusing_strategy(self, fusing_strategy: FusingStrategy):
         self.subject_fusing_strategy = fusing_strategy
         return self
 
     def add_mapping_field(
         self,
         source_field: str,
-        target_field: Union[str, PropertyHelper],
-        fusing_strategy: Union[FusingStrategyEnum, FuseOp] = None,
+        target_field: PropertyName,
+        fusing_strategy: FusingStrategy = None,
     ):
         """Adds a field mapping from source data to property of spg_type.
 
-        :param source_field: The source field to be mapped.
-        :param target_field: The target field to map the source field to.
-        :return: self
+        Args:
+            source_field: The source field to be mapped.
+            target_field: The target field to map the source field to.
+            fusing_strategy:
+
+        Returns: self
+
         """
         self.mapping[target_field] = source_field
         self.object_fuse_strategies[target_field] = fusing_strategy
@@ -355,8 +392,8 @@ class SubGraphMapping(Mapping):
 
     def add_predicting_field(
         self,
-        target_field: Union[str, PropertyHelper],
-        predicting_strategy: PredictOp = None,
+        target_field: PropertyName,
+        predicting_strategy: PredictingStrategy = None,
     ):
         self.predicate_predicting_strategies[target_field] = predicting_strategy
         return self

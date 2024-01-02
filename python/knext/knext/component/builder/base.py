@@ -28,12 +28,20 @@ class ComponentTypeEnum(str, Enum):
 
 
 class BuilderComponent(Component, ABC):
+    """
+    Abstract base class for all builder component.
+    """
+
     @property
     def type(self):
         return ComponentTypeEnum.__members__[self.__class__.__name__].value
 
 
 class SourceReader(BuilderComponent, ABC):
+    """
+    Abstract base class for all source reader component.
+    """
+
     @property
     def upstream_types(self):
         return None
@@ -44,6 +52,10 @@ class SourceReader(BuilderComponent, ABC):
 
 
 class SPGExtractor(BuilderComponent, ABC):
+    """
+    Abstract base class for all SPG extractor component.
+    """
+
     @property
     def upstream_types(self):
         return Union[SourceReader, SPGExtractor]
@@ -54,6 +66,10 @@ class SPGExtractor(BuilderComponent, ABC):
 
 
 class Mapping(BuilderComponent, ABC):
+    """
+    Abstract base class for all mapping component.
+    """
+
     @property
     def upstream_types(self):
         return Union[SourceReader, SPGExtractor]
@@ -64,6 +80,10 @@ class Mapping(BuilderComponent, ABC):
 
 
 class SinkWriter(BuilderComponent, ABC):
+    """
+    Abstract base class for all sink writer component.
+    """
+
     @property
     def upstream_types(self):
         return Union[Mapping]
