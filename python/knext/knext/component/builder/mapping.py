@@ -13,8 +13,6 @@ from enum import Enum
 from typing import Union, Dict, List, Tuple, Sequence, Optional, Any
 
 from knext import rest
-from knext.client.base import Client
-from knext.client.builder import BuilderClient
 from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient
 from knext.common.runnable import Input, Output
@@ -35,6 +33,13 @@ class FusingStrategyEnum(str, Enum):
 
 class PredictingStrategyEnum(str, Enum):
     pass
+
+
+class MappingTypeEnum(str, Enum):
+    Property = "PROPERTY"
+    Relation = "RELATION"
+    SubProperty = "SUB_PROPERTY"
+    SubRelation = "SUB_RELATION"
 
 
 FusingStrategy = Union[FusingStrategyEnum, FuseOp]
@@ -80,13 +85,11 @@ class SPGTypeMapping(Mapping):
 
     fusing_strategy: FusingStrategy = None
 
-    _property_mapping: Dict[TripletName, str] = dict()
-    _relation_mapping: Dict[TripletName, str] = dict()
+    _property_mapping: Dict[TripletName, Optional[str]] = dict()
+    _relation_mapping: Dict[TripletName, Optional[str]] = dict()
     _sub_property_mapping: Dict[TripletName, str] = dict()
 
     _filters: List[Tuple[str, str]] = list()
-
-    _subject_fusing_strategy: Optional[FusingStrategy] = None
 
     _object_linking_strategies: Dict[TripletName, LinkingStrategy] = dict()
 
@@ -182,6 +185,7 @@ class SPGTypeMapping(Mapping):
             predicting_strategy = PredictOp.by_name(op_name)()
         else:
             predicting_strategy = None
+        self._property_mapping[triplet_name] = None
         self._predicate_predicting_strategies[triplet_name] = predicting_strategy
 
         return self
@@ -205,6 +209,7 @@ class SPGTypeMapping(Mapping):
             predicting_strategy = PredictOp.by_name(op_name)()
         else:
             predicting_strategy = None
+        self._relation_mapping[triplet_name] = None
         self._predicate_predicting_strategies[triplet_name] = predicting_strategy
         return self
 
@@ -229,78 +234,85 @@ class SPGTypeMapping(Mapping):
 
         mapping_filters = [
             rest.MappingFilter(column_name=name, column_value=value)
-            for name, value in self.filters
+            for name, value in self._filters
         ]
         mapping_configs = []
-        for tgt_name, src_name in self.mapping.items():
-            linking_strategy = self.object_linking_strategies.get(tgt_name, None)
-            if isinstance(linking_strategy, LinkOp):
-                strategy_config = rest.OperatorLinkingConfig(
-                    operator_config=linking_strategy.to_rest()
-                )
-            elif linking_strategy == LinkingStrategyEnum.IDEquals:
-                strategy_config = rest.IdEqualsLinkingConfig()
-            elif not linking_strategy:
-                object_type_name = spg_type.properties[tgt_name].object_type_name
-                if object_type_name in LinkOp.bind_schemas:
-                    op_name = LinkOp.bind_schemas[object_type_name]
-                    op = LinkOp.by_name(op_name)()
+        for triplet_name, src_name in self._property_mapping.items():
+            if src_name:
+                linking_strategy = self._object_linking_strategies.get(triplet_name, None)
+                if isinstance(linking_strategy, LinkOp):
                     strategy_config = rest.OperatorLinkingConfig(
-                        operator_config=op.to_rest()
+                        operator_config=linking_strategy.to_rest()
                     )
-                else:
+                elif linking_strategy == LinkingStrategyEnum.IDEquals:
+                    strategy_config = rest.IdEqualsLinkingConfig()
+                elif not linking_strategy:
                     strategy_config = None
+                else:
+                    raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
+                predicting_strategy = self._predicate_predicting_strategies.get(triplet_name, None)
+                if isinstance(predicting_strategy, PredictOp):
+                    strategy_config = rest.OperatorPredictingConfig(
+                        operator_config=predicting_strategy.to_rest()
+                    )
+                elif not predicting_strategy:
+                    strategy_config = None
+                else:
+                    raise ValueError(
+                        f"Invalid predicting_strategy [{predicting_strategy}]."
+                    )
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    target=tgt_name,
+                    predicate=triplet_name[1],
+                    object=triplet_name[2],
                     strategy_config=strategy_config,
+                    mapping_type=MappingTypeEnum.Property,
                 )
             )
 
-        predicting_configs = []
-        for (
-            predicate_name,
-            predicting_strategy,
-        ) in self.predicate_predicting_strategies.items():
-            if isinstance(predicting_strategy, PredictOp):
-                strategy_config = rest.OperatorPredictingConfig(
-                    operator_config=predicting_strategy.to_rest()
-                )
-            elif not predicting_strategy:
-                object_type_name = spg_type.properties[predicate_name].object_type_name
-                if (
-                    self.spg_type_name,
-                    predicate_name,
-                    object_type_name,
-                ) in PredictOp.bind_schemas:
-                    op_name = PredictOp.bind_schemas[
-                        (self.spg_type_name, predicate_name, object_type_name)
-                    ]
-                    op = PredictOp.by_name(op_name)()
-                    strategy_config = rest.OperatorPredictingConfig(
-                        operator_config=op.to_rest()
+        for triplet_name, src_name in self._relation_mapping.items():
+            if src_name:
+                linking_strategy = self._object_linking_strategies.get(triplet_name, None)
+                if isinstance(linking_strategy, LinkOp):
+                    strategy_config = rest.OperatorLinkingConfig(
+                        operator_config=linking_strategy.to_rest()
                     )
-                else:
+                elif linking_strategy == LinkingStrategyEnum.IDEquals:
+                    strategy_config = rest.IdEqualsLinkingConfig()
+                elif not linking_strategy:
                     strategy_config = None
+                else:
+                    raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                raise ValueError(
-                    f"Invalid predicting_strategy [{predicting_strategy}]."
-                )
-            if strategy_config:
-                predicting_configs.append(
-                    rest.PredictingConfig(
-                        target=predicate_name, predicting_config=strategy_config
+                predicting_strategy = self._predicate_predicting_strategies.get(triplet_name, None)
+                if isinstance(predicting_strategy, PredictOp):
+                    strategy_config = rest.OperatorPredictingConfig(
+                        operator_config=predicting_strategy.to_rest()
                     )
-                )
+                elif not predicting_strategy:
+                    strategy_config = None
+                else:
+                    raise ValueError(
+                        f"Invalid predicting_strategy [{predicting_strategy}]."
+                    )
 
-        if isinstance(self.subject_fusing_strategy, FuseOp):
+            mapping_configs.append(
+                rest.MappingConfig(
+                    source=src_name,
+                    predicate=triplet_name[1],
+                    object=triplet_name[2],
+                    strategy_config=strategy_config,
+                    mapping_type=MappingTypeEnum.Relation,
+                )
+            )
+
+        if isinstance(self.fusing_strategy, FuseOp):
             fusing_config = rest.OperatorFusingConfig(
                 operator_config=self.fusing_strategy.to_rest()
             )
-        elif not self.subject_fusing_strategy:
+        elif not self.fusing_strategy:
             if self.spg_type_name in FuseOp.bind_schemas:
                 op_name = FuseOp.bind_schemas[self.spg_type_name]
                 op = FuseOp.by_name(op_name)()
@@ -317,7 +329,6 @@ class SPGTypeMapping(Mapping):
             mapping_filters=mapping_filters,
             mapping_configs=mapping_configs,
             subject_fusing_config=fusing_config,
-            predicting_configs=predicting_configs,
         )
         return rest.Node(**super().to_dict(), node_config=config)
 
@@ -336,8 +347,3 @@ class SPGTypeMapping(Mapping):
         raise NotImplementedError(
             f"`submit` method is not currently supported for {self.__class__.__name__}."
         )
-
-
-if __name__ == '__main__':
-    a = SPGTypeMapping(spg_type_name="TEST.Entity1")
-    print(a.spg_type)
