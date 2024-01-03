@@ -10,6 +10,7 @@
 # or implied.
 
 from abc import ABC
+from typing import Union, Tuple
 
 
 class SchemaHelper(ABC, str):
@@ -28,3 +29,14 @@ class SPGTypeHelper(SchemaHelper):
 class PropertyHelper(SchemaHelper):
     def __init__(self, type_name: str):
         super().__init__(type_name)
+
+
+class RelationHelper(SchemaHelper):
+    def __init__(self, type_name: str):
+        super().__init__(type_name)
+
+
+SPGTypeName = Union[str, SPGTypeHelper]
+PropertyName = Union[str, PropertyHelper]
+RelationName = Union[str, RelationHelper]
+TripletName = Tuple[SPGTypeName, Union[PropertyName, RelationName], SPGTypeName]
