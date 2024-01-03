@@ -28,3 +28,7 @@ class SPGTypeHelper(SchemaHelper):
 class PropertyHelper(SchemaHelper):
     def __init__(self, type_name: str):
         super().__init__(type_name)
+
+class RelationHelper(SchemaHelper):
+    def __init__(self, type_name: str):
+        super().__init__(type_name)
