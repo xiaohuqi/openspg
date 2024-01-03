@@ -230,3 +230,4 @@ from knext.rest.models.builder.pipeline.config.predicting_config import Predicti
 from knext.rest.models.builder.pipeline.config.new_instance_fusing_config import (
     NewInstanceFusingConfig,
 )
+from knext.rest.models.builder.pipeline.config.spg_type_mapping_node_configs import SpgTypeMappingNodeConfigs
