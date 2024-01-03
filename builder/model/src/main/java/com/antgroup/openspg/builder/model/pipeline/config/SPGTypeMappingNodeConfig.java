@@ -16,6 +16,7 @@ package com.antgroup.openspg.builder.model.pipeline.config;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.enums.NodeTypeEnum;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -45,6 +46,22 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
     private final String object;
     private final BaseStrategyConfig strategyConfig;
     private final MappingType mappingType;
+
+    public boolean isPropertyLinking() {
+      return mappingType.equals(MappingType.PROPERTY) && source != null;
+    }
+
+    public boolean isPropertyPredicting() {
+      return mappingType.equals(MappingType.PROPERTY) && source == null;
+    }
+
+    public boolean isRelationLinking() {
+      return mappingType.equals(MappingType.RELATION) && source != null;
+    }
+
+    public boolean isRelationPredicting() {
+      return mappingType.equals(MappingType.RELATION) && source == null;
+    }
   }
 
   private final String spgType;
@@ -65,5 +82,29 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
     this.mappingFilters = mappingFilters;
     this.mappingConfigs = mappingConfigs;
     this.subjectFusingConfig = subjectFusingConfig;
+  }
+
+  public List<MappingConfig> getPropertyLinkingConfigs() {
+    return mappingConfigs.stream()
+        .filter(MappingConfig::isPropertyLinking)
+        .collect(Collectors.toList());
+  }
+
+  public List<MappingConfig> getRelationLinkingConfigs() {
+    return mappingConfigs.stream()
+        .filter(MappingConfig::isRelationLinking)
+        .collect(Collectors.toList());
+  }
+
+  public List<MappingConfig> getPropertyPredictingConfigs() {
+    return mappingConfigs.stream()
+        .filter(MappingConfig::isPropertyPredicting)
+        .collect(Collectors.toList());
+  }
+
+  public List<MappingConfig> getRelationPredictingConfigs() {
+    return mappingConfigs.stream()
+        .filter(MappingConfig::isRelationPredicting)
+        .collect(Collectors.toList());
   }
 }

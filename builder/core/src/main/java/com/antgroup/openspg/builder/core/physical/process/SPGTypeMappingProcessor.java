@@ -15,25 +15,10 @@ package com.antgroup.openspg.builder.core.physical.process;
 
 import com.antgroup.openspg.builder.core.runtime.BuilderContext;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
-import com.antgroup.openspg.builder.model.exception.BuilderRecordException;
-import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfigs;
-import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
-import com.antgroup.openspg.builder.model.record.BaseRecord;
-import com.antgroup.openspg.builder.model.record.BuilderRecord;
-import com.antgroup.openspg.builder.model.record.RelationRecord;
-import com.antgroup.openspg.cloudext.interfaces.graphstore.adapter.util.EdgeRecordConvertor;
-import com.antgroup.openspg.cloudext.interfaces.graphstore.adapter.util.VertexRecordConvertor;
-import com.antgroup.openspg.common.util.StringUtils;
+import com.antgroup.openspg.builder.model.record.*;
 import com.antgroup.openspg.core.schema.model.identifier.SPGTypeIdentifier;
-import com.antgroup.openspg.core.schema.model.predicate.Relation;
-import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,100 +27,69 @@ import org.apache.commons.collections4.CollectionUtils;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SPGTypeMappingProcessor extends BaseProcessor<SPGTypeMappingNodeConfigs> {
 
-  private final Map<SPGTypeIdentifier, SPGTypeMappingHelper> mappingHelpers;
+  private final List<SPGTypeMappingHelper> mappingHelpers;
 
   public SPGTypeMappingProcessor(String id, String name, SPGTypeMappingNodeConfigs config) {
     super(id, name, config);
     this.mappingHelpers =
         config.getMappingNodeConfigs().stream()
             .map(SPGTypeMappingHelper::new)
-            .collect(Collectors.toMap(SPGTypeMappingHelper::getIdentifier, Function.identity()));
+            .collect(Collectors.toList());
   }
 
   @Override
   public void doInit(BuilderContext context) throws BuilderException {
     super.doInit(context);
-    this.mappingHelpers.values().forEach(x -> x.init(context));
+    this.mappingHelpers.forEach(x -> x.init(context));
   }
 
   @Override
   public List<BaseRecord> process(List<BaseRecord> inputs) {
-    List<BaseAdvancedRecord> advancedRecords = new ArrayList<>(inputs.size());
+    List<BaseSPGRecord> resultSpgRecords = new ArrayList<>(inputs.size());
+
+    List<BuilderRecord> emptyIdentifierRecords = new ArrayList<>(inputs.size());
+    Map<SPGTypeIdentifier, List<BuilderRecord>> identifierRecords =
+        new HashMap<>(mappingHelpers.size());
     for (BaseRecord baseRecord : inputs) {
       BuilderRecord record = (BuilderRecord) baseRecord;
-      if (isFiltered(record)) {
+      if (record.getIdentifier() == null) {
+        emptyIdentifierRecords.add(record);
+      } else {
+        List<BuilderRecord> existedRecords =
+            identifierRecords.computeIfAbsent(record.getIdentifier(), k -> new ArrayList<>());
+        existedRecords.add(record);
+      }
+    }
+
+    for (SPGTypeMappingHelper mappingHelper : mappingHelpers) {
+      for (BuilderRecord record : emptyIdentifierRecords) {
+        resultSpgRecords.addAll(toSPGRecords(mappingHelper, record));
+      }
+    }
+
+    for (SPGTypeMappingHelper mappingHelper : mappingHelpers) {
+      List<BuilderRecord> identifiedRecords = identifierRecords.get(mappingHelper.getIdentifier());
+      if (CollectionUtils.isEmpty(identifiedRecords)) {
         continue;
       }
 
-      BuilderRecord mappedRecord = mapping(record);
-      BaseAdvancedRecord advancedRecord = toSPGRecord(mappedRecord, spgType);
-      if (advancedRecord != null) {
-        recordLinking.linking(advancedRecord);
-        recordPredicting.predicting(advancedRecord);
-        List<BaseAdvancedRecord> subjectFusedRecord =
-            subjectFusing.fusing(Lists.newArrayList(advancedRecord));
-        advancedRecords.addAll(subjectFusedRecord);
+      for (BuilderRecord record : identifiedRecords) {
+        resultSpgRecords.addAll(toSPGRecords(mappingHelper, record));
       }
     }
-    return (List) advancedRecords;
+    return (List) resultSpgRecords;
   }
 
   @Override
   public void close() throws Exception {}
 
-  private boolean isFiltered(BuilderRecord record) {
-    List<SPGTypeMappingNodeConfig.MappingFilter> mappingFilters = config.getMappingFilters();
-    if (record.getIdentifier() != null && !record.getIdentifier().equals(identifier)) {
-      return true;
+  private List<BaseSPGRecord> toSPGRecords(
+      SPGTypeMappingHelper mappingHelper, BuilderRecord record) {
+    if (mappingHelper.isFiltered(record)) {
+      return Collections.emptyList();
     }
-    if (CollectionUtils.isEmpty(mappingFilters)) {
-      return false;
-    }
-    for (SPGTypeMappingNodeConfig.MappingFilter mappingFilter : mappingFilters) {
-      String columnName = mappingFilter.getColumnName();
-      String columnValue = mappingFilter.getColumnValue();
 
-      String propertyValue = record.getPropValue(columnName);
-      if (columnValue.equals(propertyValue)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private BuilderRecord mapping(BuilderRecord record) {
-    List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs = config.getMappingConfigs();
-    if (CollectionUtils.isEmpty(mappingConfigs)) {
-      // if empty, perform mapping with the same name
-      return record;
-    }
-    Map<String, String> newProps = new HashMap<>(record.getProps().size());
-    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
-      String source = mappingConfig.getSource();
-      String target = mappingConfig.getPredicate();
-
-      String sourceValue = record.getPropValue(source);
-      if (sourceValue != null) {
-        newProps.put(target, sourceValue);
-      }
-    }
-    return record.withNewProps(newProps);
-  }
-
-  private BaseAdvancedRecord toSPGRecord(BuilderRecord record, BaseSPGType spgType) {
-    String bizId = record.getPropValue("id");
-    if (StringUtils.isBlank(bizId)) {
-      throw new BuilderRecordException("");
-    }
-    return VertexRecordConvertor.toAdvancedRecord(spgType, bizId, record.getProps());
-  }
-
-  private RelationRecord toSPGRecord(BuilderRecord record, Relation relation) {
-    String srcId = record.getPropValue("srcId");
-    String dstId = record.getPropValue("dstId");
-    if (StringUtils.isBlank(srcId) || StringUtils.isBlank(dstId)) {
-      throw new BuilderRecordException("");
-    }
-    return EdgeRecordConvertor.toRelationRecord(relation, srcId, dstId, record.getProps());
+    BuilderRecord mappedRecord = mappingHelper.mapping(record);
+    return mappingHelper.toSPGRecords(mappedRecord);
   }
 }
