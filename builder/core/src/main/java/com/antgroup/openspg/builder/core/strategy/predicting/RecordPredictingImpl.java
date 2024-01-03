@@ -16,7 +16,8 @@ package com.antgroup.openspg.builder.core.strategy.predicting;
 import com.antgroup.openspg.builder.core.runtime.BuilderContext;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.PredictingException;
-import com.antgroup.openspg.builder.model.pipeline.config.BaseMappingNodeConfig;
+import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
+import com.antgroup.openspg.builder.model.pipeline.config.predicting.BasePredictingConfig;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
 import com.antgroup.openspg.builder.model.record.property.SPGPropertyRecord;
 import com.antgroup.openspg.builder.model.record.property.SPGPropertyValue;
@@ -29,10 +30,10 @@ import org.apache.commons.collections4.CollectionUtils;
 
 public class RecordPredictingImpl implements RecordPredicting {
 
-  private final List<BaseMappingNodeConfig.PredictingConfig> predicatingConfigs;
+  private final List<SPGTypeMappingNodeConfig.MappingConfig> predicatingConfigs;
   private final Map<String, PropertyPredicting> semanticPropertyPredicating;
 
-  public RecordPredictingImpl(List<BaseMappingNodeConfig.PredictingConfig> predicatingConfigs) {
+  public RecordPredictingImpl(List<SPGTypeMappingNodeConfig.MappingConfig> predicatingConfigs) {
     this.predicatingConfigs = predicatingConfigs;
     this.semanticPropertyPredicating = new HashMap<>();
   }
@@ -43,9 +44,10 @@ public class RecordPredictingImpl implements RecordPredicting {
       return;
     }
 
-    for (BaseMappingNodeConfig.PredictingConfig predicatingConfig : predicatingConfigs) {
+    for (SPGTypeMappingNodeConfig.MappingConfig predicatingConfig : predicatingConfigs) {
       PropertyPredicting propertyPredicating =
-          PropertyPredictingFactory.getPropertyPredicating(predicatingConfig.getPredictingConfig());
+          PropertyPredictingFactory.getPropertyPredicating(
+              (BasePredictingConfig) predicatingConfig.getStrategyConfig());
       propertyPredicating.init(context);
       semanticPropertyPredicating.put(predicatingConfig.getTarget(), propertyPredicating);
     }

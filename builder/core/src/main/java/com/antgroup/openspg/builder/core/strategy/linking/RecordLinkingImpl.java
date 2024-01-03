@@ -18,7 +18,7 @@ import com.antgroup.openspg.builder.core.strategy.linking.impl.BasicPropertyLink
 import com.antgroup.openspg.builder.core.strategy.linking.impl.IdEqualsLinking;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.LinkingException;
-import com.antgroup.openspg.builder.model.pipeline.config.BaseMappingNodeConfig;
+import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.linking.BaseLinkingConfig;
 import com.antgroup.openspg.builder.model.record.BaseSPGRecord;
 import com.antgroup.openspg.builder.model.record.property.BasePropertyRecord;
@@ -31,13 +31,13 @@ import org.apache.commons.collections4.CollectionUtils;
 
 public class RecordLinkingImpl implements RecordLinking {
 
-  private final List<BaseMappingNodeConfig.MappingConfig> mappingConfigs;
+  private final List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs;
   private final BasicPropertyLinking basicPropertyLinking;
   private final Map<String, PropertyLinking> semanticPropertyLinking;
 
   @Setter private PropertyLinking defaultPropertyLinking = IdEqualsLinking.INSTANCE;
 
-  public RecordLinkingImpl(List<BaseMappingNodeConfig.MappingConfig> mappingConfigs) {
+  public RecordLinkingImpl(List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs) {
     this.mappingConfigs = mappingConfigs;
     this.basicPropertyLinking = new BasicPropertyLinking();
     this.semanticPropertyLinking = new HashMap<>(mappingConfigs.size());
@@ -54,7 +54,7 @@ public class RecordLinkingImpl implements RecordLinking {
     if (CollectionUtils.isEmpty(mappingConfigs)) {
       return;
     }
-    for (BaseMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
+    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
       if (mappingConfig.getStrategyConfig() != null) {
         PropertyLinking propertyLinking =
             PropertyLinkingFactory.getPropertyLinking(

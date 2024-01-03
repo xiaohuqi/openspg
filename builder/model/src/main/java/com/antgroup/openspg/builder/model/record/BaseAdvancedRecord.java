@@ -17,7 +17,6 @@ import com.antgroup.openspg.builder.model.record.property.BasePropertyRecord;
 import com.antgroup.openspg.builder.model.record.property.SPGPropertyRecord;
 import com.antgroup.openspg.core.schema.model.BasicInfo;
 import com.antgroup.openspg.core.schema.model.identifier.SPGTypeIdentifier;
-import com.antgroup.openspg.core.schema.model.predicate.Property;
 import com.antgroup.openspg.core.schema.model.semantic.SystemPredicateEnum;
 import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
 import com.antgroup.openspg.core.schema.model.type.SPGTypeEnum;
@@ -52,16 +51,6 @@ public abstract class BaseAdvancedRecord extends BaseSPGRecord
     return getSpgType().getBasicInfo();
   }
 
-  public SPGPropertyRecord getPropertyRecord(Property property) {
-    for (SPGPropertyRecord record : getSpgProperties()) {
-      if (record.getProperty().getName().equals(property.getName())) {
-        return record;
-      }
-    }
-    return null;
-  }
-
-  /** 获取语义属性的记录 */
   public List<SPGPropertyRecord> getSemanticPropertyRecords() {
     return getSpgProperties().stream()
         .filter(BasePropertyRecord::isSemanticProperty)

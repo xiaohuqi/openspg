@@ -17,7 +17,7 @@ import com.antgroup.openspg.builder.core.runtime.BuilderContext;
 import com.antgroup.openspg.builder.core.strategy.linking.RecordLinking;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.FusingException;
-import com.antgroup.openspg.builder.model.pipeline.config.BaseMappingNodeConfig;
+import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
 import com.antgroup.openspg.builder.model.record.property.BasePropertyRecord;
@@ -31,12 +31,12 @@ import org.apache.commons.collections4.CollectionUtils;
 public class SubGraphFusingImpl implements SubGraphFusing {
 
   private BuilderContext context;
-  private final List<BaseMappingNodeConfig.MappingConfig> mappingConfigs;
+  private final List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs;
   private final Map<String, EntityFusing> semanticEntityFusing;
   private final RecordLinking recordLinking;
 
   public SubGraphFusingImpl(
-      List<BaseMappingNodeConfig.MappingConfig> mappingConfigs, RecordLinking recordLinking) {
+          List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs, RecordLinking recordLinking) {
     this.mappingConfigs = mappingConfigs;
     this.semanticEntityFusing = new HashMap<>(mappingConfigs.size());
     this.recordLinking = recordLinking;
@@ -49,7 +49,7 @@ public class SubGraphFusingImpl implements SubGraphFusing {
       return;
     }
 
-    for (BaseMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
+    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
       if (mappingConfig.getStrategyConfig() != null) {
         EntityFusing entityFusing =
             EntityFusingFactory.getEntityFusing(
