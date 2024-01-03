@@ -1225,12 +1225,20 @@ class SPGSchemaMarkLang:
         for spg_type_name in sorted(session.spg_types):
             if spg_type_name.startswith("STD.") or spg_type_name in self.internal_type:
                 continue
+            relations = set()
+            hyp_predicate = [member.value for member in HypernymPredicateEnum]
+            for relation in session.get(spg_type_name).relations:
+                rel = relation.split("_")[0]
+                if rel in relations or rel in hyp_predicate or rel in session.get(spg_type_name).properties:
+                    continue
+                relations.add(rel)
             spg_types.append(
                 {
                     "name": spg_type_name.split(".")[1],
                     "properties": [
                         prop for prop in session.get(spg_type_name).properties
                     ],
+                    "relations": relations,
                 }
             )
 
