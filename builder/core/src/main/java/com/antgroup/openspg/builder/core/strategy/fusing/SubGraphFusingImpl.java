@@ -55,7 +55,7 @@ public class SubGraphFusingImpl implements SubGraphFusing {
             EntityFusingFactory.getEntityFusing(
                 (BaseFusingConfig) mappingConfig.getStrategyConfig());
         entityFusing.init(context);
-        semanticEntityFusing.put(mappingConfig.getTarget(), entityFusing);
+        semanticEntityFusing.put(mappingConfig.getObject(), entityFusing);
       }
     }
   }

@@ -15,13 +15,9 @@ package com.antgroup.openspg.builder.model.pipeline.config;
 
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.enums.NodeTypeEnum;
-import com.antgroup.openspg.builder.model.pipeline.enums.StrategyTypeEnum;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 
 @Getter
 public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
@@ -33,13 +29,22 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
     private final String columnValue;
   }
 
+  public enum MappingType {
+    PROPERTY,
+    RELATION,
+    SUB_PROPERTY,
+    SUB_RELATION,
+    ;
+  }
+
   @Getter
   @AllArgsConstructor
   public static class MappingConfig {
     private final String source;
     private final String predicate;
-    private final String target;
+    private final String object;
     private final BaseStrategyConfig strategyConfig;
+    private final MappingType mappingType;
   }
 
   private final String spgType;
@@ -51,34 +56,14 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
   private final BaseFusingConfig subjectFusingConfig;
 
   public SPGTypeMappingNodeConfig(
-      NodeTypeEnum type,
       String spgType,
       List<MappingFilter> mappingFilters,
       List<MappingConfig> mappingConfigs,
       BaseFusingConfig subjectFusingConfig) {
-    super(type);
+    super(NodeTypeEnum.SPG_TYPE_MAPPING);
     this.spgType = spgType;
     this.mappingFilters = mappingFilters;
     this.mappingConfigs = mappingConfigs;
     this.subjectFusingConfig = subjectFusingConfig;
-  }
-
-  public List<MappingConfig> getPredictingConfigs() {
-    if (CollectionUtils.isEmpty(mappingConfigs)) {
-      return Collections.emptyList();
-    }
-
-    return mappingConfigs.stream()
-        .filter(x -> x.getStrategyConfig().getStrategyType().equals(StrategyTypeEnum.PREDICTING))
-        .collect(Collectors.toList());
-  }
-
-  public List<MappingConfig> getLinkingConfigs() {
-    if (CollectionUtils.isEmpty(mappingConfigs)) {
-      return Collections.emptyList();
-    }
-    return mappingConfigs.stream()
-        .filter(x -> x.getStrategyConfig().getStrategyType().equals(StrategyTypeEnum.LINKING))
-        .collect(Collectors.toList());
   }
 }

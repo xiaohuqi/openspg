@@ -92,12 +92,6 @@ public class LogicalPlan implements Serializable {
       case SPG_TYPE_MAPPING:
         return new SPGTypeMappingNode(
             node.getId(), node.getName(), (SPGTypeMappingNodeConfig) node.getNodeConfig());
-      case RELATION_MAPPING:
-        return new RelationMappingNode(
-            node.getId(), node.getName(), (RelationMappingNodeConfig) node.getNodeConfig());
-      case SUBGRAPH_MAPPING:
-        return new SubGraphMappingNode(
-            node.getId(), node.getName(), (SubGraphMappingNodeConfig) node.getNodeConfig());
       case GRAPH_SINK:
         return new GraphStoreSinkNode(
             node.getId(), node.getName(), (GraphStoreSinkNodeConfig) node.getNodeConfig());

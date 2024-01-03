@@ -19,6 +19,7 @@ public enum NodeTypeEnum {
 
   /** MAPPING Component */
   SPG_TYPE_MAPPING,
+  SPG_TYPE_MAPPINGS,
 
   /** EXTRACT Component */
   USER_DEFINED_EXTRACT,

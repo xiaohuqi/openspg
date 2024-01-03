@@ -13,18 +13,11 @@
 
 package com.antgroup.openspg.builder.core.physical.process;
 
-import com.antgroup.openspg.builder.core.runtime.BuilderCatalog;
 import com.antgroup.openspg.builder.core.runtime.BuilderContext;
-import com.antgroup.openspg.builder.core.strategy.fusing.SubjectFusing;
-import com.antgroup.openspg.builder.core.strategy.fusing.SubjectFusingImpl;
-import com.antgroup.openspg.builder.core.strategy.linking.RecordLinking;
-import com.antgroup.openspg.builder.core.strategy.linking.RecordLinkingImpl;
-import com.antgroup.openspg.builder.core.strategy.linking.impl.SearchBasedLinking;
-import com.antgroup.openspg.builder.core.strategy.predicting.RecordPredicting;
-import com.antgroup.openspg.builder.core.strategy.predicting.RecordPredictingImpl;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.BuilderRecordException;
 import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
+import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfigs;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
 import com.antgroup.openspg.builder.model.record.BaseRecord;
 import com.antgroup.openspg.builder.model.record.BuilderRecord;
@@ -32,9 +25,6 @@ import com.antgroup.openspg.builder.model.record.RelationRecord;
 import com.antgroup.openspg.cloudext.interfaces.graphstore.adapter.util.EdgeRecordConvertor;
 import com.antgroup.openspg.cloudext.interfaces.graphstore.adapter.util.VertexRecordConvertor;
 import com.antgroup.openspg.common.util.StringUtils;
-import com.antgroup.openspg.core.schema.model.BaseOntology;
-import com.antgroup.openspg.core.schema.model.identifier.BaseSPGIdentifier;
-import com.antgroup.openspg.core.schema.model.identifier.SPGIdentifierTypeEnum;
 import com.antgroup.openspg.core.schema.model.identifier.SPGTypeIdentifier;
 import com.antgroup.openspg.core.schema.model.predicate.Relation;
 import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
@@ -43,47 +33,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 @Slf4j
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SPGTypeMappingProcessor extends BaseProcessor<SPGTypeMappingNodeConfig> {
+public class SPGTypeMappingProcessor extends BaseProcessor<SPGTypeMappingNodeConfigs> {
 
-  private final SPGTypeIdentifier identifier;
-  private BaseSPGType spgType;
-  private RecordLinking recordLinking;
-  private RecordPredicting recordPredicting;
-  private SubjectFusing subjectFusing;
+  private final Map<SPGTypeIdentifier, SPGTypeMappingHelper> mappingHelpers;
 
-  public SPGTypeMappingProcessor(String id, String name, SPGTypeMappingNodeConfig config) {
+  public SPGTypeMappingProcessor(String id, String name, SPGTypeMappingNodeConfigs config) {
     super(id, name, config);
-    this.identifier = SPGTypeIdentifier.parse(config.getSpgType());
+    this.mappingHelpers =
+        config.getMappingNodeConfigs().stream()
+            .map(SPGTypeMappingHelper::new)
+            .collect(Collectors.toMap(SPGTypeMappingHelper::getIdentifier, Function.identity()));
   }
 
   @Override
   public void doInit(BuilderContext context) throws BuilderException {
     super.doInit(context);
-
-    this.spgType = (BaseSPGType) loadSchema(identifier, context.getCatalog());
-
-    this.recordLinking = new RecordLinkingImpl(config.getLinkingConfigs());
-    this.recordLinking.setDefaultPropertyLinking(new SearchBasedLinking());
-    this.recordLinking.init(context);
-
-    this.subjectFusing = new SubjectFusingImpl(config.getSubjectFusingConfig());
-    this.subjectFusing.init(context);
-
-    this.recordPredicting = new RecordPredictingImpl(config.getPredictingConfigs());
-    this.recordPredicting.init(context);
-  }
-
-  private BaseOntology loadSchema(BaseSPGIdentifier identifier, BuilderCatalog catalog) {
-    SPGIdentifierTypeEnum identifierType = identifier.getIdentifierType();
-    if (identifierType == SPGIdentifierTypeEnum.SPG_TYPE) {
-      return catalog.getSPGType((SPGTypeIdentifier) identifier);
-    }
-    throw new IllegalArgumentException("illegal identifier type=" + identifierType);
+    this.mappingHelpers.values().forEach(x -> x.init(context));
   }
 
   @Override
@@ -140,7 +112,7 @@ public class SPGTypeMappingProcessor extends BaseProcessor<SPGTypeMappingNodeCon
     Map<String, String> newProps = new HashMap<>(record.getProps().size());
     for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
       String source = mappingConfig.getSource();
-      String target = mappingConfig.getTarget();
+      String target = mappingConfig.getPredicate();
 
       String sourceValue = record.getPropValue(source);
       if (sourceValue != null) {

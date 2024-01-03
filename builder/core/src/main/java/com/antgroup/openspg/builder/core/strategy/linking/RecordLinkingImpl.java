@@ -60,7 +60,7 @@ public class RecordLinkingImpl implements RecordLinking {
             PropertyLinkingFactory.getPropertyLinking(
                 (BaseLinkingConfig) mappingConfig.getStrategyConfig());
         propertyLinking.init(context);
-        semanticPropertyLinking.put(mappingConfig.getTarget(), propertyLinking);
+        semanticPropertyLinking.put(mappingConfig.getObject(), propertyLinking);
       }
     }
   }
