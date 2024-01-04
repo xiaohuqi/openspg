@@ -530,7 +530,7 @@ class SPGSchemaMarkLang:
         cur_type = self.parsing_register[RegisterUnit.Type]
         type_name = cur_type.name
 
-        if cur_type.spg_type_enum == SpgTypeEnum.Concept:
+        if cur_type.spg_type_enum == SpgTypeEnum.Concept and self.parsing_register[RegisterUnit.Relation] is None:
             assert "#" in predicate_name, self.error_msg(
                 "Concept type only accept following categories of relation: INC#/CAU#/SYNANT#/IND#/USE#/SEQ#"
             )
@@ -1254,9 +1254,17 @@ class SPGSchemaMarkLang:
         for spg_type_name in sorted(session.spg_types):
             if spg_type_name.startswith("STD.") or spg_type_name in self.internal_type:
                 continue
+
+            properties = set()
+            for prop, prop_type in session.get(spg_type_name).properties.items():
+                properties.add(prop)
+                if len(prop_type.sub_properties) > 0:
+                    for sub_prop in prop_type.sub_properties:
+                        properties.add(f"{prop}.{sub_prop}")
+
             relations = set()
             hyp_predicate = [member.value for member in HypernymPredicateEnum]
-            for relation in session.get(spg_type_name).relations:
+            for relation, relation_type in session.get(spg_type_name).relations.items():
                 rel = relation.split("_")[0]
                 if (
                     rel in relations
@@ -1265,12 +1273,14 @@ class SPGSchemaMarkLang:
                 ):
                     continue
                 relations.add(rel)
+                if len(relation_type.sub_properties) > 0:
+                    for sub_prop in relation_type.sub_properties:
+                        properties.add(f"{rel}.{sub_prop}")
+
             spg_types.append(
                 {
                     "name": spg_type_name.split(".")[1],
-                    "properties": [
-                        prop for prop in session.get(spg_type_name).properties
-                    ],
+                    "properties": properties,
                     "relations": relations,
                 }
             )
