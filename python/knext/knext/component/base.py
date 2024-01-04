@@ -69,6 +69,7 @@ class Component(Runnable, RESTable, ABC):
     ):
         from knext.chain.base import Chain
         from knext.component.builder.base import Mapping
+        from knext.component.builder.mapping import _SPGTypeMappings
 
         if not other:
             return self
@@ -76,7 +77,7 @@ class Component(Runnable, RESTable, ABC):
             other = [other]
         dag_list = []
         if all(isinstance(o, Mapping) for o in other):
-            other = Mapping.sort_by_dependency(other)
+            other = [_SPGTypeMappings(spg_type_mappings=other)]
         for o in other:
             if not o:
                 dag = nx.DiGraph()
