@@ -123,7 +123,7 @@ public class EdgeRecordConvertor {
         continue;
       }
       Map<String, String> props = subProperties.get(relationKey);
-      results.add(toRelationRecord(relation, null, dstId, properties));
+      results.add(toRelationRecord(relation, null, dstId, props));
     }
     return results;
   }
