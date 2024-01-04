@@ -44,39 +44,34 @@ class MappingConfig(object):
     """
     openapi_types = {
         'source': 'str',
-        'predicate': 'str',
-        'object': 'str',
+        'target': 'str',
         'strategy_config': 'BaseStrategyConfig',
         'mapping_type': 'str'
     }
 
     attribute_map = {
         'source': 'source',
-        'predicate': 'predicate',
-        'object': 'object',
+        'target': 'target',
         'strategy_config': 'strategyConfig',
         'mapping_type': 'mappingType'
     }
 
-    def __init__(self, source=None, predicate=None, object=None, strategy_config=None, mapping_type=None, local_vars_configuration=None):  # noqa: E501
+    def __init__(self, source=None, target=None, strategy_config=None, mapping_type=None, local_vars_configuration=None):  # noqa: E501
         """MappingConfig - a model defined in OpenAPI"""  # noqa: E501
         if local_vars_configuration is None:
             local_vars_configuration = Configuration()
         self.local_vars_configuration = local_vars_configuration
 
         self._source = None
-        self._predicate = None
-        self._object = None
+        self._target = None
         self._strategy_config = None
         self._mapping_type = None
         self.discriminator = None
 
         if source is not None:
             self.source = source
-        if predicate is not None:
-            self.predicate = predicate
-        if object is not None:
-            self.object = object
+        if target is not None:
+            self.target = target
         if strategy_config is not None:
             self.strategy_config = strategy_config
         if mapping_type is not None:
@@ -104,46 +99,25 @@ class MappingConfig(object):
         self._source = source
 
     @property
-    def predicate(self):
-        """Gets the predicate of this MappingConfig.  # noqa: E501
+    def target(self):
+        """Gets the target of this MappingConfig.  # noqa: E501
 
 
-        :return: The predicate of this MappingConfig.  # noqa: E501
+        :return: The target of this MappingConfig.  # noqa: E501
         :rtype: str
         """
-        return self._predicate
+        return self._target
 
-    @predicate.setter
-    def predicate(self, predicate):
-        """Sets the predicate of this MappingConfig.
+    @target.setter
+    def target(self, target):
+        """Sets the target of this MappingConfig.
 
 
-        :param predicate: The predicate of this MappingConfig.  # noqa: E501
+        :param target: The target of this MappingConfig.  # noqa: E501
         :type: str
         """
 
-        self._predicate = predicate
-
-    @property
-    def object(self):
-        """Gets the object of this MappingConfig.  # noqa: E501
-
-
-        :return: The object of this MappingConfig.  # noqa: E501
-        :rtype: str
-        """
-        return self._object
-
-    @object.setter
-    def object(self, object):
-        """Sets the object of this MappingConfig.
-
-
-        :param object: The object of this MappingConfig.  # noqa: E501
-        :type: str
-        """
-
-        self._object = object
+        self._target = target
 
     @property
     def strategy_config(self):
