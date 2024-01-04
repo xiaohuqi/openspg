@@ -1222,7 +1222,7 @@ class SPGSchemaMarkLang:
                         and not o.is_dynamic
                         and not (
                             new_type.spg_type_enum == SpgTypeEnum.Concept
-                            and p_name in ["isA", "locateAt"]
+                            and p_name in [member.value for member in HypernymPredicateEnum]
                         )
                     ):
                         assert inherited_type is None, self.error_msg(
