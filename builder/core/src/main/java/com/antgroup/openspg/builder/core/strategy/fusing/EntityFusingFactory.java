@@ -14,6 +14,7 @@
 package com.antgroup.openspg.builder.core.strategy.fusing;
 
 import com.antgroup.openspg.builder.core.strategy.fusing.impl.NewInstanceFusing;
+import com.antgroup.openspg.builder.core.strategy.fusing.impl.NotImportFusing;
 import com.antgroup.openspg.builder.core.strategy.fusing.impl.OperatorFusing;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.OperatorFusingConfig;
@@ -29,6 +30,8 @@ public class EntityFusingFactory {
         return new OperatorFusing((OperatorFusingConfig) config);
       case NEW_INSTANCE:
         return NewInstanceFusing.INSTANCE;
+      case NOT_IMPORT:
+        return NotImportFusing.INSTANCE;
       default:
         throw new IllegalArgumentException("illegal fusing type=" + fusingType);
     }
