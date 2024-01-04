@@ -1071,6 +1071,7 @@ class SPGSchemaMarkLang:
                         need_update = True
                         print(f"Update standard type constraint: {spg_type}")
 
+                inherited_type = self.get_inherited_type(new_type.name)
                 for prop in old_type.properties:
                     if (
                         not old_type.properties[prop].inherited
@@ -1084,6 +1085,9 @@ class SPGSchemaMarkLang:
                         ), self.error_msg(
                             "The subject property of event type cannot be deleted"
                         )
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit property alteration!'
+                        )
 
                         old_type.properties[
                             prop
@@ -1091,7 +1095,6 @@ class SPGSchemaMarkLang:
                         need_update = True
                         print(f"Delete property: [{new_type.name}] {prop}")
 
-                inherited_type = self.get_inherited_type(new_type.name)
                 for prop, o in new_type.properties.items():
 
                     if (
