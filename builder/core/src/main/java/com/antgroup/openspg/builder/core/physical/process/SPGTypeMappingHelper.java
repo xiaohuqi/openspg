@@ -107,9 +107,11 @@ public class SPGTypeMappingHelper {
     List<BaseSPGRecord> results = new ArrayList<>();
     List<BaseAdvancedRecord> advancedRecords = toAdvancedRecord(propertyValues, relationValues);
     for (BaseAdvancedRecord advancedRecord : advancedRecords) {
-      for (RelationRecord relationRecord : advancedRecord.getRelationRecords()) {
-        relationRecord.setSrcId(advancedRecord.getId());
-        results.add(relationRecord);
+      if (CollectionUtils.isNotEmpty(advancedRecord.getRelationRecords())) {
+        for (RelationRecord relationRecord : advancedRecord.getRelationRecords()) {
+          relationRecord.setSrcId(advancedRecord.getId());
+          results.add(relationRecord);
+        }
       }
       results.add(advancedRecord);
     }
