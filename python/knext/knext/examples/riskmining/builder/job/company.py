@@ -10,15 +10,15 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 
-from knext.client.model.builder_job import BuilderJob
-from knext.api.component import SPGTypeMapping
 from knext.api.component import (
     CSVReader,
     KGWriter,
 )
-from schema.riskmining_schema_helper import RiskMining
+from knext.api.component import SPGTypeMapping
+from knext.client.model.builder_job import BuilderJob
+from knext.component.builder.mapping import RelationMapping
 
-from knext.component.builder.mapping import FusingStrategyEnum
+from schema.riskmining_schema_helper import RiskMining
 
 
 class Company(BuilderJob):
@@ -50,12 +50,13 @@ class CompanyHasCert(BuilderJob):
         )
 
         mapping = (
-            SPGTypeMapping(
-                spg_type_name=RiskMining.Company,
-                fusing_strategy=FusingStrategyEnum.NotImport,
+            RelationMapping(
+                subject_name=RiskMining.Company,
+                predicate_name="hasCert",
+                object_name=RiskMining.Cert,
             )
-            .add_property_mapping("src", RiskMining.Company.id)
-            .add_relation_mapping("dst", "hasCert", RiskMining.Cert)
+            .add_sub_property_mapping("src", "srcId")
+            .add_sub_property_mapping("dst", "dstId")
         )
 
         sink = KGWriter()
