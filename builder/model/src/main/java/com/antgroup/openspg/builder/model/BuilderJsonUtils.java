@@ -47,10 +47,6 @@ public class BuilderJsonUtils {
                         LLMBasedExtractNodeConfig.class, NodeTypeEnum.LLM_BASED_EXTRACT.name())
                     .registerSubtype(
                         SPGTypeMappingNodeConfig.class, NodeTypeEnum.SPG_TYPE_MAPPING.name())
-                    .registerSubtype(
-                        RelationMappingNodeConfig.class, NodeTypeEnum.RELATION_MAPPING.name())
-                    .registerSubtype(
-                        SubGraphMappingNodeConfig.class, NodeTypeEnum.SUBGRAPH_MAPPING.name())
                     .registerSubtype(GraphStoreSinkNodeConfig.class, NodeTypeEnum.GRAPH_SINK.name())
                     .recognizeSubtypes())
             .registerTypeAdapterFactory(
