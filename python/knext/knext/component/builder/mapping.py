@@ -432,18 +432,18 @@ class RelationMapping(Mapping):
     predicate_name: RelationName
     object_name: SPGTypeName
 
-    mapping: Dict[str, str] = dict()
+    _mapping: Dict[str, str] = dict()
 
-    filters: List[Tuple[str, str]] = list()
+    _filters: List[Tuple[str, str]] = list()
 
-    def add_mapping_field(self, source_field: str, target_field: str):
+    def add_sub_property_mapping(self, source_name: str, target_name: str):
         """Adds a field mapping from source data to property of spg_type.
 
-        :param source_field: The source field to be mapped.
-        :param target_field: The target field to map the source field to.
+        :param source_name: The source field to be mapped.
+        :param target_name: The target field to map the source field to.
         :return: self
         """
-        self.mapping[target_field] = source_field
+        self._mapping[target_name] = source_name
         return self
 
     def add_filter(self, column_name: str, column_value: str):
@@ -454,7 +454,7 @@ class RelationMapping(Mapping):
         :param column_value: The column value to be filtered.
         :return: self
         """
-        self.filters.append((column_name, column_value))
+        self._filters.append((column_name, column_value))
         return self
 
     def to_rest(self):
@@ -462,11 +462,11 @@ class RelationMapping(Mapping):
 
         mapping_filters = [
             rest.MappingFilter(column_name=name, column_value=value)
-            for name, value in self.filters
+            for name, value in self._filters
         ]
         mapping_configs = [
             rest.MappingConfig(source=src_name, target=tgt_name)
-            for tgt_name, src_name in self.mapping.items()
+            for tgt_name, src_name in self._mapping.items()
         ]
 
         config = rest.RelationMappingNodeConfig(

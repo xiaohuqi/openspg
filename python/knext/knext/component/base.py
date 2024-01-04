@@ -68,7 +68,7 @@ class Component(Runnable, RESTable, ABC):
         ],
     ):
         from knext.chain.base import Chain
-        from knext.component.builder.base import Mapping
+        from knext.component.builder.mapping import SPGTypeMapping
         from knext.component.builder.mapping import _SPGTypeMappings
 
         if not other:
@@ -76,7 +76,7 @@ class Component(Runnable, RESTable, ABC):
         if not isinstance(other, list):
             other = [other]
         dag_list = []
-        if all(isinstance(o, Mapping) for o in other):
+        if all(isinstance(o, SPGTypeMapping) for o in other):
             other = [_SPGTypeMappings(spg_type_mappings=other)]
         for o in other:
             if not o:

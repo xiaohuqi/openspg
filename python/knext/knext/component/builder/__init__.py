@@ -16,6 +16,7 @@ from knext.component.builder.extractor import (
 )
 from knext.component.builder.mapping import (
     SPGTypeMapping,
+    RelationMapping,
 )
 from knext.component.builder.sink_writer import KGWriter
 
@@ -25,5 +26,6 @@ __all__ = [
     "UserDefinedExtractor",
     "LLMBasedExtractor",
     "SPGTypeMapping",
+    "RelationMapping",
     "KGWriter",
 ]

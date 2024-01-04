@@ -41,13 +41,10 @@ class Test(BuilderJob):
             .add_property_mapping(
                 "concept", TEST.CenterEvent.conceptProperty, TEST.Concept1, LinkingStrategyEnum.IDEquals
             )
-            .add_sub_property_mapping("confidence_concept", "confidence")
             .add_property_mapping("entity", TEST.CenterEvent.subject, TEST.Entity1, LinkingStrategyEnum.IDEquals)
             .add_relation_mapping(
                 "event", TEST.CenterEvent.eventRelation, TEST.CenterEvent, LinkingStrategyEnum.IDEquals
             )
-            .add_sub_property_mapping("confidence_event", "confidence")
-            .add_sub_property_mapping("source_event", "source")
         )
 
         entity_mapping = (
