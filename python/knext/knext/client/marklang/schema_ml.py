@@ -1011,7 +1011,8 @@ class SPGSchemaMarkLang:
 
         # generate the delete list of spg type
         for spg_type in session.spg_types:
-            if spg_type in self.internal_type:
+            unique_id = session.spg_types[spg_type]._rest_model.ontology_id.unique_id
+            if spg_type in self.internal_type and unique_id < 1000:
                 continue
 
             if spg_type not in self.types:
