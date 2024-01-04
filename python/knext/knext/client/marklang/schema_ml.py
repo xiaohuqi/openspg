@@ -1094,8 +1094,8 @@ class SPGSchemaMarkLang:
                         need_update = True
                         print(f"Delete property: [{new_type.name}] {prop}")
 
+                inherited_type = self.get_inherited_type(new_type.name)
                 for prop, o in new_type.properties.items():
-                    inherited_type = self.get_inherited_type(new_type.name)
 
                     if (
                         prop not in old_type.properties
@@ -1166,6 +1166,9 @@ class SPGSchemaMarkLang:
                         or old_type.relations[relation].object_type_name
                         != new_type.relations[relation].object_type_name
                     ):
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         old_type.add_relation(new_type.relations[relation])
                         need_update = True
                         print(f"Create relation: [{new_type.name}] {p_name}")
@@ -1182,11 +1185,17 @@ class SPGSchemaMarkLang:
                             new_type.relations[relation],
                         )
                         if need_update:
+                            assert inherited_type is None, self.error_msg(
+                                f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                            )
                             old_type.relations[
                                 relation
                             ].alter_operation = AlterOperationEnum.Update
 
                     elif old_type.relations[relation] != new_type.relations[relation]:
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         assert not old_type.relations[
                             relation
                         ].inherited, self.error_msg(
@@ -1216,6 +1225,9 @@ class SPGSchemaMarkLang:
                             and p_name in ["isA", "locateAt"]
                         )
                     ):
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         old_type.relations[
                             relation
                         ].alter_operation = AlterOperationEnum.Delete
