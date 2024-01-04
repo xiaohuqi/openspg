@@ -15,13 +15,15 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class {{namespace}}:
     {% for spg_type in spg_types %}
     class {{spg_type.name}}(SPGTypeHelper):{% for property in spg_type.properties %}
         {{property}} = PropertyHelper("{{property}}"){% endfor %}
+    {% for relation in spg_type.relations %}
+        {{relation}} = RelationHelper("{{relation}}"){% endfor %}
     {% endfor %}
     {% for spg_type in spg_types %}{{spg_type.name}} = {{spg_type.name}}("{{namespace}}.{{spg_type.name}}")
     {% endfor %}
