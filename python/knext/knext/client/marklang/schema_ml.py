@@ -380,7 +380,7 @@ class SPGSchemaMarkLang:
                 self.parsing_register[
                     RegisterUnit.Type
                 ].hypernym_predicate = HypernymPredicateEnum.IsA
-            elif meta_value == "isA":
+            elif meta_value == "locateAt":
                 self.parsing_register[
                     RegisterUnit.Type
                 ].hypernym_predicate = HypernymPredicateEnum.LocateAt
