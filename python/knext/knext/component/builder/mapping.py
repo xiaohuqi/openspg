@@ -107,11 +107,16 @@ class SPGTypeMapping(Mapping):
 
     @property
     def input_types(self) -> Input:
-        return Dict[str, str]
+        return Union[Dict[str, str], SPGRecord]
 
     @property
     def output_types(self) -> Output:
         return SPGRecord
+
+    @property
+    def dependencies(self):
+        for triplet_name in self._property_mapping.keys():
+
 
     def add_property_mapping(
         self,

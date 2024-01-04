@@ -68,12 +68,15 @@ class Component(Runnable, RESTable, ABC):
         ],
     ):
         from knext.chain.base import Chain
+        from knext.component.builder.base import Mapping
 
         if not other:
             return self
         if not isinstance(other, list):
             other = [other]
         dag_list = []
+        if all(isinstance(o, Mapping) for o in other):
+
         for o in other:
             if not o:
                 dag = nx.DiGraph()

@@ -62,6 +62,25 @@ class Mapping(BuilderComponent, ABC):
     def downstream_types(self):
         return Union[SinkWriter]
 
+    @staticmethod
+    def sort_by_dependency(mappings: list):
+
+        def compare(instance):
+            def comparator(x, y):
+
+                if x.val is y:
+                    return -1
+                elif y.val is x:
+                    return 1
+                else:
+                    return 0
+
+            return comparator
+
+        sorted_mappings = []
+        sorted_list = sorted(mappings, key=compare(mappings))
+        for mapping in mappings:
+
 
 class SinkWriter(BuilderComponent, ABC):
     @property

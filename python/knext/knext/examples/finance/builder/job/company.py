@@ -17,6 +17,8 @@ from knext.api.component import CSVReader, LLMBasedExtractor, KGWriter, SubGraph
 from knext.client.model.builder_job import BuilderJob
 from nn4k.invoker import LLMInvoker
 
+from knext.component.builder import SPGTypeMapping
+
 
 class Company(BuilderJob):
     def build(self):
@@ -45,14 +47,17 @@ class Company(BuilderJob):
         )
 
         mapping = (
-            SubGraphMapping(spg_type_name=Finance.Company)
-            .add_mapping_field("name", Finance.Company.id)
-            .add_mapping_field("name", Finance.Company.name)
-            .add_mapping_field("regArea", Finance.Company.regArea)
-            .add_mapping_field("businessScope", Finance.Company.businessScope)
-            .add_mapping_field("establishDate", Finance.Company.establishDate)
-            .add_mapping_field("legalPerson", Finance.Company.legalPerson)
-            .add_mapping_field("regCapital", Finance.Company.regCapital)
+            SPGTypeMapping(spg_type_name=Finance.Company)
+            .add_property_mapping("name", Finance.Company.id)
+            .add_property_mapping("name", Finance.Company.name)
+            .add_property_mapping("regArea", Finance.Company.regArea)
+            .add_property_mapping("businessScope", Finance.Company.businessScope)
+            .add_property_mapping("establishDate", Finance.Company.establishDate)
+            .add_property_mapping("legalPerson", Finance.Company.legalPerson)
+            .add_relation_mapping("belongTo", Company.belongTo.Person.score1)
+            .add_relation_mapping("belongTo", Finance.Company.belongTo, Finance.Cert, )
+            # .add_sub_property_mapping("sub1", Finance.Company.belongTo.score2, Finance.Person, [])   score1
+            # .add_sub_property_mapping("sub2", Finance.Company.belongTo, Finance.Cert)    score2
         )
 
         sink = KGWriter()
