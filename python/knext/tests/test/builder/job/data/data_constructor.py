@@ -45,14 +45,24 @@ def mock_data():
     _float = mock_float(10000)
     _standard = mock_date("20240101", "20240131")
     _concept = mock_chinese(2)
-    _lead_to_concept = mock_chinese(2)
-    _relevant_event_id = str(mock_int(1, 100))
-    _subject_entity_id = str(mock_int(100, 200))
-    _subject_relation_id = str(mock_int(200, 300))
+    _confidence_concept = mock_float(1)
+    _lead_to_concept2 = mock_chinese(2)
+    _lead_to_concept3 = mock_chinese(2)
+    _event = str(mock_int(1, 100))
+    _confidence_event = mock_float(1)
+    _source_event = mock_str(10)
+    _entity = str(mock_int(100, 200))
+    _entity_relation = str(mock_int(100, 200))
     return [_id, _text, _integer, _float, _standard, _concept, _lead_to_concept, _relevant_event_id, _subject_entity_id, _subject_relation_id]
 
 
 if __name__ == '__main__':
+    """
+    ["id", "text", "integer", "float", "standard",
+     "concept", "confidence_concept", "lead_to_concept2", "lead_to_concept3"
+     "event", "confidence_event", "source_event",
+     "entity", "entity_relation"],
+    """
     import csv
     data_count = 1000
 

@@ -82,20 +82,25 @@ class Mapping(BuilderComponent, ABC):
     def sort_by_dependency(mappings: list):
 
         def compare(instance):
-            def comparator(x, y):
-
-                if x.val is y:
+            from knext.component.builder import SPGTypeMapping
+            def comparator(x: SPGTypeMapping, y: SPGTypeMapping):
+                if x.spg_type_name in y.dependencies:
                     return -1
-                elif y.val is x:
+                elif y.spg_type_name in x.dependencies:
                     return 1
                 else:
                     return 0
 
             return comparator
 
-        sorted_mappings = []
-        sorted_list = sorted(mappings, key=compare(mappings))
-        for mapping in mappings:
+        from knext import rest
+
+        if len(mappings) == 1:
+            return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in mappings])
+
+        sorted_mappings = sorted(mappings, key=compare(mappings))
+
+        return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in sorted_mappings])
 
 
 class SinkWriter(BuilderComponent, ABC):

@@ -10,9 +10,9 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 from abc import ABC
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
-from knext.common.schema_helper import SPGTypeName, PropertyName
+from knext.common.schema_helper import SPGTypeName, TripletName
 from knext.operator.base import BaseOp
 from knext.operator.invoke_result import InvokeResult
 from knext.operator.spg_record import SPGRecord
@@ -140,9 +140,6 @@ class PromptOp(BaseOp, ABC):
         if isinstance(response, list) and len(response) > 0:
             response = response[0]
         variables.update({f"{self.__class__.__name__}": response})
-        print("LLM(Output): ")
-        print("----------------------")
-        print([variables])
         return [variables]
 
     def invoke(self, *args):
@@ -150,10 +147,11 @@ class PromptOp(BaseOp, ABC):
 
 
 class PredictOp(BaseOp, ABC):
+    """Base class for all predict operators."""
 
-    bind_to: Tuple[SPGTypeName, PropertyName, SPGTypeName]
+    bind_to: TripletName
 
-    bind_schemas: Dict[Tuple[SPGTypeName, PropertyName, SPGTypeName], str] = {}
+    bind_schemas: Dict[TripletName, str] = {}
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(

@@ -11,7 +11,7 @@
 
 import json
 from abc import ABC
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Tuple
 
 from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient
@@ -38,7 +38,7 @@ input:${input}
         self,
         spg_type_name: SPGTypeName,
         property_names: List[PropertyName],
-        relation_names: List[RelationName],
+        relation_names: List[Tuple[RelationName, SPGTypeName]],
         custom_prompt: str = None,
     ):
         super().__init__()
@@ -57,6 +57,7 @@ input:${input}
         self.params = {
             "spg_type_name": spg_type_name,
             "property_names": property_names,
+            "relation_names": relation_names,
             "custom_prompt": custom_prompt,
         }
 

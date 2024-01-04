@@ -15,7 +15,7 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class TEST:
@@ -24,21 +24,24 @@ class TEST:
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        eventProperty = PropertyHelper("eventProperty")
         subject = PropertyHelper("subject")
-        basicTextProperty = PropertyHelper("basicTextProperty")
-        basicFloatProperty = PropertyHelper("basicFloatProperty")
-        eventTime = PropertyHelper("eventTime")
         standardProperty = PropertyHelper("standardProperty")
-        basicIntegerProperty = PropertyHelper("basicIntegerProperty")
         conceptProperty = PropertyHelper("conceptProperty")
+        eventTime = PropertyHelper("eventTime")
+        basicTextProperty = PropertyHelper("basicTextProperty")
+        basicIntegerProperty = PropertyHelper("basicIntegerProperty")
+        basicFloatProperty = PropertyHelper("basicFloatProperty")
+    
+        eventRelation = RelationHelper("eventRelation")
     
     class Concept1(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
+        stdId = PropertyHelper("stdId")
+    
+        leadTo = RelationHelper("leadTo")
     
     class Concept2(SPGTypeHelper):
         description = PropertyHelper("description")
@@ -47,26 +50,39 @@ class TEST:
         alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
     
+    
+    class Concept3(SPGTypeHelper):
+        description = PropertyHelper("description")
+        id = PropertyHelper("id")
+        name = PropertyHelper("name")
+        stdId = PropertyHelper("stdId")
+        alias = PropertyHelper("alias")
+    
+    
     class Entity1(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        predictProperty = PropertyHelper("predictProperty")
-        entityProperty = PropertyHelper("entityProperty")
+    
+        entityRelation = RelationHelper("entityRelation")
+        predictRelation = RelationHelper("predictRelation")
     
     class Entity2(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
     
+    
     class Entity3(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
     
+    
     CenterEvent = CenterEvent("TEST.CenterEvent")
     Concept1 = Concept1("TEST.Concept1")
     Concept2 = Concept2("TEST.Concept2")
+    Concept3 = Concept3("TEST.Concept3")
     Entity1 = Entity1("TEST.Entity1")
     Entity2 = Entity2("TEST.Entity2")
     Entity3 = Entity3("TEST.Entity3")

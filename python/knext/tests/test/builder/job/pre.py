@@ -2,7 +2,6 @@
 
 from knext.client.model.builder_job import BuilderJob
 from knext.api.component import CSVReader, UserDefinedExtractor, SPGTypeMapping, KGWriter
-from knext.component.builder import SubGraphMapping
 
 try:
     from schema.test_schema_helper import TEST
@@ -29,7 +28,7 @@ class Pre(BuilderJob):
         )
 
         entity_mapping_3 = (
-            SubGraphMapping(spg_type_name=TEST.Entity3)
+            SPGTypeMapping(spg_type_name=TEST.Entity3)
             .add_mapping_field("id", TEST.Entity3.id)
             .add_mapping_field("id", TEST.Entity3.name)
             .add_filter("filter", "3")

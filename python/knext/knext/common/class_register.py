@@ -23,6 +23,7 @@ def _register(root, path, files, class_type):
     module_prefix = module_prefix + '.' if module_prefix else ''
     for file_name in files:
         if file_name.endswith(".py"):
+            print(file_name)
             module_name = os.path.splitext(file_name)[0]
             module = __import__(module_prefix + module_name)
             classes = inspect.getmembers(module, inspect.isclass)

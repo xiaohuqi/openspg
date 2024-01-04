@@ -51,7 +51,7 @@ class LLMBasedExtractor(SPGExtractor):
 
     @property
     def output_types(self) -> Output:
-        return Union[Dict[str, str], SPGRecord]
+        return SPGRecord
 
     def invoke(self, input: Input) -> Sequence[Output]:
         raise NotImplementedError(
@@ -101,7 +101,7 @@ class UserDefinedExtractor(SPGExtractor):
 
     @property
     def output_types(self) -> Output:
-        return Union[Dict[str, str], SPGRecord]
+        return Dict[str, str]
 
     def invoke(self, input: Input) -> Sequence[Output]:
         raise NotImplementedError(

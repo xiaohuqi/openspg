@@ -17,7 +17,7 @@ from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient
 from knext.common.runnable import Input, Output
 
-from knext.common.schema_helper import SPGTypeName, PropertyName, RelationName, TripletName
+from knext.common.schema_helper import SPGTypeName, PropertyName, RelationName, TripletName, SubPropertyName
 from knext.component.builder.base import Mapping
 from knext.operator.op import LinkOp, FuseOp, PredictOp
 from knext.operator.spg_record import SPGRecord
@@ -87,7 +87,7 @@ class SPGTypeMapping(Mapping):
 
     _property_mapping: Dict[TripletName, Optional[str]] = dict()
     _relation_mapping: Dict[TripletName, Optional[str]] = dict()
-    _sub_property_mapping: Dict[TripletName, str] = dict()
+    _sub_property_mapping: Dict[Tuple[TripletName, MappingTypeEnum], Dict[str, str]] = dict()
 
     _filters: List[Tuple[str, str]] = list()
 
@@ -95,13 +95,15 @@ class SPGTypeMapping(Mapping):
 
     _predicate_predicting_strategies: Dict[TripletName, PredictingStrategy] = dict()
 
+    _current: Tuple[TripletName, MappingTypeEnum] = None
+
     schema_session: SchemaClient.SchemaSession = None
 
     spg_type: BaseSpgType = None
 
     def model_post_init(self, __context: Any) -> None:
         if not self.schema_session:
-            self.schema_session = SchemaClient(project_id=4).create_session()
+            self.schema_session = SchemaClient().create_session()
         if not self.spg_type:
             self.spg_type = self.schema_session.get(self.spg_type_name)
 
@@ -115,8 +117,10 @@ class SPGTypeMapping(Mapping):
 
     @property
     def dependencies(self):
-        for triplet_name in self._property_mapping.keys():
-
+        dependencies = []
+        for triplet_name in {**self._property_mapping, **self._relation_mapping}.keys():
+            dependencies.append(triplet_name[2])
+        return dependencies
 
     def add_property_mapping(
         self,
@@ -143,6 +147,9 @@ class SPGTypeMapping(Mapping):
             linking_strategy = None
         self._property_mapping[triplet_name] = source_name
         self._object_linking_strategies[triplet_name] = linking_strategy
+
+        if not self._current:
+            self._current = (triplet_name, MappingTypeEnum.SubProperty)
         return self
 
     def add_relation_mapping(
@@ -164,9 +171,11 @@ class SPGTypeMapping(Mapping):
             linking_strategy = LinkOp.by_name(op_name)()
         else:
             linking_strategy = None
-        self._realtion_mapping[triplet_name] = source_name
+        self._relation_mapping[triplet_name] = source_name
         self._object_linking_strategies[triplet_name] = linking_strategy
 
+        if not self._current:
+            self._current = (triplet_name, MappingTypeEnum.SubRelation)
         return self
 
     def add_predicting_property(
@@ -218,8 +227,13 @@ class SPGTypeMapping(Mapping):
         self._predicate_predicting_strategies[triplet_name] = predicting_strategy
         return self
 
-    def add_sub_property_mapping(self):
-        pass
+    def add_sub_property_mapping(self, source_name: str, target_name: SubPropertyName):
+        if not self._current:
+            raise ValueError("Please add property or relation mapping before adding sub_property mapping.")
+        sub_property_mapping = self._sub_property_mapping.get(self._current, {})
+        sub_property_mapping.update({target_name: source_name})
+        self._sub_property_mapping.update({self._current: sub_property_mapping})
+        return self
 
     def add_filter(self, column_name: str, column_value: str):
         """Adds data filtering rule.
@@ -270,8 +284,7 @@ class SPGTypeMapping(Mapping):
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    predicate=triplet_name[1],
-                    object=triplet_name[2],
+                    target=triplet_name[1] + '#' + triplet_name[2],
                     strategy_config=strategy_config,
                     mapping_type=MappingTypeEnum.Property,
                 )
@@ -306,8 +319,7 @@ class SPGTypeMapping(Mapping):
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    predicate=triplet_name[1],
-                    object=triplet_name[2],
+                    target=triplet_name[1] + '#' + triplet_name[2],
                     strategy_config=strategy_config,
                     mapping_type=MappingTypeEnum.Relation,
                 )
@@ -328,6 +340,17 @@ class SPGTypeMapping(Mapping):
             raise ValueError(
                 f"Invalid fusing_strategy [{self.subject_fusing_strategy}]."
             )
+
+        for (triplet_name, mapping_type), sub_mapping in self._sub_property_mapping.items():
+            for tgt_name, src_name in sub_mapping.items():
+                mapping_configs.append(
+                    rest.MappingConfig(
+                        source=src_name,
+                        target=triplet_name[1] + '#' + triplet_name[2] + '#' + tgt_name,
+                        strategy_config=None,
+                        mapping_type=mapping_type,
+                    )
+                )
 
         config = rest.SpgTypeMappingNodeConfig(
             spg_type=self.spg_type_name,

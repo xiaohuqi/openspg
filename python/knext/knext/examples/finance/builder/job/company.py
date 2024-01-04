@@ -39,6 +39,9 @@ class Company(BuilderJob):
                 Finance.Company.legalPerson,
                 Finance.Company.regCapital,
             ],
+            relation_names=[
+
+            ]
         )
 
         extract = LLMBasedExtractor(
@@ -48,14 +51,6 @@ class Company(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=Finance.Company)
-            .add_property_mapping("name", Finance.Company.id)
-            .add_property_mapping("name", Finance.Company.name)
-            .add_property_mapping("regArea", Finance.Company.regArea)
-            .add_property_mapping("businessScope", Finance.Company.businessScope)
-            .add_property_mapping("establishDate", Finance.Company.establishDate)
-            .add_property_mapping("legalPerson", Finance.Company.legalPerson)
-            .add_relation_mapping("belongTo", Company.belongTo.Person.score1)
-            .add_relation_mapping("belongTo", Finance.Company.belongTo, Finance.Cert, )
             # .add_sub_property_mapping("sub1", Finance.Company.belongTo.score2, Finance.Person, [])   score1
             # .add_sub_property_mapping("sub2", Finance.Company.belongTo, Finance.Cert)    score2
         )
