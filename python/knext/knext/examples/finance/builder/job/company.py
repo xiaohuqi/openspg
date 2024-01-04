@@ -39,9 +39,7 @@ class Company(BuilderJob):
                 Finance.Company.legalPerson,
                 Finance.Company.regCapital,
             ],
-            relation_names=[
-
-            ]
+            relation_names=[],
         )
 
         extract = LLMBasedExtractor(

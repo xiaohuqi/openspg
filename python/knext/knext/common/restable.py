@@ -17,6 +17,7 @@ class RESTable(ABC):
     """
     Abstract base class that can be serialized as REST model and submit to the SPG server.
     """
+
     @property
     def upstream_types(self) -> List[Type["RESTable"]]:
         """The types of upstream RESTable objects that the current RESTable object can support.

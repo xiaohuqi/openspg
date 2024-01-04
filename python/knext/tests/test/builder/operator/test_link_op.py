@@ -30,11 +30,10 @@ class TestLinkOp(LinkOp):
             properties={
                 "id": "TestEntity2",
                 "name": "TestEntity2",
-            }
+            },
         )
         print("TestLinkOp(Output): ")
         print("----------------------")
         print([recall_record])
 
         return [recall_record]
-

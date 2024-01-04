@@ -30,11 +30,10 @@ class TestPredictOp(PredictOp):
             properties={
                 "id": "TestEntity3",
                 "name": "TestEntity3",
-            }
+            },
         )
         print("TestPredictOp(Output): ")
         print("----------------------")
         print([predict_record])
 
         return [predict_record]
-

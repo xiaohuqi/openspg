@@ -19,8 +19,8 @@ import inspect
 
 def _register(root, path, files, class_type):
     relative_path = os.path.relpath(path, root)
-    module_prefix = relative_path.replace('.', '').replace('/', '.')
-    module_prefix = module_prefix + '.' if module_prefix else ''
+    module_prefix = relative_path.replace(".", "").replace("/", ".")
+    module_prefix = module_prefix + "." if module_prefix else ""
     for file_name in files:
         if file_name.endswith(".py"):
             module_name = os.path.splitext(file_name)[0]
@@ -28,8 +28,8 @@ def _register(root, path, files, class_type):
             classes = inspect.getmembers(module, inspect.isclass)
             for class_name, class_obj in classes:
                 if (
-                        issubclass(class_obj, class_type)
-                        and inspect.getmodule(class_obj) == module
+                    issubclass(class_obj, class_type)
+                    and inspect.getmodule(class_obj) == module
                 ):
                     class_type.register(
                         name=class_name, local_path=os.path.join(root, file_name)

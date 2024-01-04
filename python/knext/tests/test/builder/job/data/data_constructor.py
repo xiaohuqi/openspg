@@ -5,7 +5,9 @@ from datetime import datetime, timedelta
 
 
 def mock_str(length: int = 10):
-    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    random_string = "".join(
+        random.choices(string.ascii_letters + string.digits, k=length)
+    )
     return random_string
 
 
@@ -22,19 +24,61 @@ def mock_float(maxi: int = 10):
 def mock_date(start_date, end_date):
     start = datetime.strptime(start_date, "%Y%m%d")
     end = datetime.strptime(end_date, "%Y%m%d")
-    random_date = start + timedelta(seconds=random.randint(0, int((end - start).total_seconds())))
+    random_date = start + timedelta(
+        seconds=random.randint(0, int((end - start).total_seconds()))
+    )
     return random_date.strftime("%Y%m%d")
 
 
 def mock_chinese(length: int = 2):
     chinese_characters = [
-        '好', '美', '你', '我', '他', '她', '是', '在', '有', '的', '一', '个', '不', '了', '人', '大', '中', '国',
-        '上', '下', '天', '地',
-        '时', '间', '生', '活', '家', '里', '工', '作', '学', '校', '朋', '友', '开', '心', '爱', '情', '今', '天',
-        '明', '天', '昨', '天'
+        "好",
+        "美",
+        "你",
+        "我",
+        "他",
+        "她",
+        "是",
+        "在",
+        "有",
+        "的",
+        "一",
+        "个",
+        "不",
+        "了",
+        "人",
+        "大",
+        "中",
+        "国",
+        "上",
+        "下",
+        "天",
+        "地",
+        "时",
+        "间",
+        "生",
+        "活",
+        "家",
+        "里",
+        "工",
+        "作",
+        "学",
+        "校",
+        "朋",
+        "友",
+        "开",
+        "心",
+        "爱",
+        "情",
+        "今",
+        "天",
+        "明",
+        "天",
+        "昨",
+        "天",
     ]
 
-    random_chinese = ''.join(random.choice(chinese_characters) for _ in range(length))
+    random_chinese = "".join(random.choice(chinese_characters) for _ in range(length))
     return random_chinese
 
 
@@ -53,13 +97,25 @@ def mock_data():
     _source_event = mock_str(10)
     _entity = str(mock_int(100, 200))
     _entity_relation = str(mock_int(100, 200))
-    return [_id, _text, _integer, _float, _standard,
-            _concept, _confidence_concept, _lead_to_concept2, _lead_to_concept3,
-            _event, _confidence_event, _source_event,
-            _entity, _entity_relation]
+    return [
+        _id,
+        _text,
+        _integer,
+        _float,
+        _standard,
+        _concept,
+        _confidence_concept,
+        _lead_to_concept2,
+        _lead_to_concept3,
+        _event,
+        _confidence_event,
+        _source_event,
+        _entity,
+        _entity_relation,
+    ]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     ["id", "text", "integer", "float", "standard",
      "concept", "confidence_concept", "lead_to_concept2", "lead_to_concept3"
@@ -67,9 +123,10 @@ if __name__ == '__main__':
      "entity", "entity_relation"],
     """
     import csv
+
     data_count = 1
 
-    with open('data.csv', 'a', newline='') as file:
+    with open("data.csv", "a", newline="") as file:
         for _ in range(data_count):
             row_to_insert = mock_data()
             writer = csv.writer(file)

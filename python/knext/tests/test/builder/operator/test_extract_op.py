@@ -33,11 +33,9 @@ class TestExtractOp(ExtractOp):
                 "event": "TestEvent2",
                 "entity": "TestEntity1",
                 "standard": "20240101",
-                "concept": "TestConcept1"
+                "concept": "TestConcept1",
             },
-            relations={
-
-            }
+            relations={},
         )
 
         event = SPGRecord(
@@ -48,7 +46,7 @@ class TestExtractOp(ExtractOp):
                 "text": "text2",
                 "integer": "234",
                 "float": "5.67",
-            }
+            },
         )
 
         entity = SPGRecord(
@@ -57,7 +55,7 @@ class TestExtractOp(ExtractOp):
                 "id": "TestEntity1",
                 "name": "TestEntity1",
                 "entity": "TestEntity2",
-            }
+            },
         )
 
         concept1 = SPGRecord(
@@ -66,9 +64,7 @@ class TestExtractOp(ExtractOp):
                 "id": "TestConcept1",
                 "name": "TestConcept1",
             },
-            relations={
-                "leadTo": "TestConcept2"
-            }
+            relations={"leadTo": "TestConcept2"},
         )
 
         concept2 = SPGRecord(

@@ -45,4 +45,6 @@ SPGTypeName = Union[str, SPGTypeHelper]
 PropertyName = Union[str, PropertyHelper]
 RelationName = Union[str, RelationHelper]
 SubPropertyName = Union[str, SubPropertyHelper]
-TripletName = Tuple[SPGTypeName, Union[PropertyName, RelationName], Optional[SPGTypeName]]
+TripletName = Tuple[
+    SPGTypeName, Union[PropertyName, RelationName], Optional[SPGTypeName]
+]

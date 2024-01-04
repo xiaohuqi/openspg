@@ -43,20 +43,27 @@ class MappingConfig(object):
                             and the value is json key in definition.
     """
     openapi_types = {
-        'source': 'str',
-        'target': 'str',
-        'strategy_config': 'BaseStrategyConfig',
-        'mapping_type': 'str'
+        "source": "str",
+        "target": "str",
+        "strategy_config": "BaseStrategyConfig",
+        "mapping_type": "str",
     }
 
     attribute_map = {
-        'source': 'source',
-        'target': 'target',
-        'strategy_config': 'strategyConfig',
-        'mapping_type': 'mappingType'
+        "source": "source",
+        "target": "target",
+        "strategy_config": "strategyConfig",
+        "mapping_type": "mappingType",
     }
 
-    def __init__(self, source=None, target=None, strategy_config=None, mapping_type=None, local_vars_configuration=None):  # noqa: E501
+    def __init__(
+        self,
+        source=None,
+        target=None,
+        strategy_config=None,
+        mapping_type=None,
+        local_vars_configuration=None,
+    ):  # noqa: E501
         """MappingConfig - a model defined in OpenAPI"""  # noqa: E501
         if local_vars_configuration is None:
             local_vars_configuration = Configuration()
@@ -158,11 +165,20 @@ class MappingConfig(object):
         :param mapping_type: The mapping_type of this MappingConfig.  # noqa: E501
         :type: str
         """
-        allowed_values = ["PROPERTY", "RELATION", "SUB_PROPERTY", "SUB_RELATION"]  # noqa: E501
-        if self.local_vars_configuration.client_side_validation and mapping_type not in allowed_values:  # noqa: E501
+        allowed_values = [
+            "PROPERTY",
+            "RELATION",
+            "SUB_PROPERTY",
+            "SUB_RELATION",
+        ]  # noqa: E501
+        if (
+            self.local_vars_configuration.client_side_validation
+            and mapping_type not in allowed_values
+        ):  # noqa: E501
             raise ValueError(
-                "Invalid value for `mapping_type` ({0}), must be one of {1}"  # noqa: E501
-                .format(mapping_type, allowed_values)
+                "Invalid value for `mapping_type` ({0}), must be one of {1}".format(  # noqa: E501
+                    mapping_type, allowed_values
+                )
             )
 
         self._mapping_type = mapping_type
@@ -174,18 +190,20 @@ class MappingConfig(object):
         for attr, _ in six.iteritems(self.openapi_types):
             value = getattr(self, attr)
             if isinstance(value, list):
-                result[attr] = list(map(
-                    lambda x: x.to_dict() if hasattr(x, "to_dict") else x,
-                    value
-                ))
+                result[attr] = list(
+                    map(lambda x: x.to_dict() if hasattr(x, "to_dict") else x, value)
+                )
             elif hasattr(value, "to_dict"):
                 result[attr] = value.to_dict()
             elif isinstance(value, dict):
-                result[attr] = dict(map(
-                    lambda item: (item[0], item[1].to_dict())
-                    if hasattr(item[1], "to_dict") else item,
-                    value.items()
-                ))
+                result[attr] = dict(
+                    map(
+                        lambda item: (item[0], item[1].to_dict())
+                        if hasattr(item[1], "to_dict")
+                        else item,
+                        value.items(),
+                    )
+                )
             else:
                 result[attr] = value
 

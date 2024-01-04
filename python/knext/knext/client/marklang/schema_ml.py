@@ -1229,7 +1229,11 @@ class SPGSchemaMarkLang:
             hyp_predicate = [member.value for member in HypernymPredicateEnum]
             for relation in session.get(spg_type_name).relations:
                 rel = relation.split("_")[0]
-                if rel in relations or rel in hyp_predicate or rel in session.get(spg_type_name).properties:
+                if (
+                    rel in relations
+                    or rel in hyp_predicate
+                    or rel in session.get(spg_type_name).properties
+                ):
                     continue
                 relations.add(rel)
             spg_types.append(

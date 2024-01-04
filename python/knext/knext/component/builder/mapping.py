@@ -17,7 +17,13 @@ from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient
 from knext.common.runnable import Input, Output
 
-from knext.common.schema_helper import SPGTypeName, PropertyName, RelationName, TripletName, SubPropertyName
+from knext.common.schema_helper import (
+    SPGTypeName,
+    PropertyName,
+    RelationName,
+    TripletName,
+    SubPropertyName,
+)
 from knext.component.builder.base import Mapping
 from knext.operator.op import LinkOp, FuseOp, PredictOp
 from knext.operator.spg_record import SPGRecord
@@ -87,7 +93,9 @@ class SPGTypeMapping(Mapping):
 
     _property_mapping: Dict[TripletName, Optional[str]] = dict()
     _relation_mapping: Dict[TripletName, Optional[str]] = dict()
-    _sub_property_mapping: Dict[Tuple[TripletName, MappingTypeEnum], Dict[str, str]] = dict()
+    _sub_property_mapping: Dict[
+        Tuple[TripletName, MappingTypeEnum], Dict[str, str]
+    ] = dict()
 
     _filters: List[Tuple[str, str]] = list()
 
@@ -130,12 +138,15 @@ class SPGTypeMapping(Mapping):
         linking_strategy: LinkingStrategy = None,
     ):
         if target_name not in self.spg_type.properties:
-            raise ValueError(f"Property [{target_name}] does not exist in [{self.spg_type_name}].")
+            raise ValueError(
+                f"Property [{target_name}] does not exist in [{self.spg_type_name}]."
+            )
         object_type_name = self.spg_type.properties[target_name].object_type_name
         if target_type:
-            assert target_type == object_type_name,\
-                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given." \
+            assert target_type == object_type_name, (
+                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given."
                 f"Please check your schema config."
+            )
         triplet_name = (self.spg_type_name, target_name, object_type_name)
 
         if linking_strategy:
@@ -159,10 +170,12 @@ class SPGTypeMapping(Mapping):
         target_type: SPGTypeName,
         linking_strategy: LinkingStrategy = None,
     ):
-        relation_name = target_name + '_' + target_type
+        relation_name = target_name + "_" + target_type
         if relation_name not in self.spg_type.relations:
-            raise ValueError(f"Relation [{relation_name}] with ObjectType [target_type]"
-                             f" does not exist in [{self.spg_type_name}].")
+            raise ValueError(
+                f"Relation [{relation_name}] with ObjectType [target_type]"
+                f" does not exist in [{self.spg_type_name}]."
+            )
         triplet_name = (self.spg_type_name, target_name, target_type)
         if linking_strategy:
             pass
@@ -185,12 +198,15 @@ class SPGTypeMapping(Mapping):
         predicting_strategy: PredictingStrategy = None,
     ):
         if target_name not in self.spg_type.properties:
-            raise ValueError(f"Property [{target_name}] does not exist in [{self.spg_type_name}].")
+            raise ValueError(
+                f"Property [{target_name}] does not exist in [{self.spg_type_name}]."
+            )
         object_type_name = self.spg_type.properties[target_name].object_type_name
         if target_type:
-            assert target_type == object_type_name,\
-                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given." \
+            assert target_type == object_type_name, (
+                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given."
                 f"Please check your schema config."
+            )
         triplet_name = (self.spg_type_name, target_name, object_type_name)
         if predicting_strategy:
             pass
@@ -210,10 +226,12 @@ class SPGTypeMapping(Mapping):
         target_type: SPGTypeName,
         predicting_strategy: PredictingStrategy = None,
     ):
-        relation_name = target_name + '_' + target_type
+        relation_name = target_name + "_" + target_type
         if relation_name not in self.spg_type.relations:
-            raise ValueError(f"Relation [{relation_name}] with ObjectType [target_type]"
-                             f" does not exist in [{self.spg_type_name}].")
+            raise ValueError(
+                f"Relation [{relation_name}] with ObjectType [target_type]"
+                f" does not exist in [{self.spg_type_name}]."
+            )
         triplet_name = (self.spg_type_name, target_name, target_type)
 
         if predicting_strategy:
@@ -229,7 +247,9 @@ class SPGTypeMapping(Mapping):
 
     def add_sub_property_mapping(self, source_name: str, target_name: SubPropertyName):
         if not self._current:
-            raise ValueError("Please add property or relation mapping before adding sub_property mapping.")
+            raise ValueError(
+                "Please add property or relation mapping before adding sub_property mapping."
+            )
         sub_property_mapping = self._sub_property_mapping.get(self._current, {})
         sub_property_mapping.update({target_name: source_name})
         self._sub_property_mapping.update({self._current: sub_property_mapping})
@@ -258,7 +278,9 @@ class SPGTypeMapping(Mapping):
         mapping_configs = []
         for triplet_name, src_name in self._property_mapping.items():
             if src_name:
-                linking_strategy = self._object_linking_strategies.get(triplet_name, None)
+                linking_strategy = self._object_linking_strategies.get(
+                    triplet_name, None
+                )
                 if isinstance(linking_strategy, LinkOp):
                     strategy_config = rest.OperatorLinkingConfig(
                         operator_config=linking_strategy.to_rest()
@@ -270,7 +292,9 @@ class SPGTypeMapping(Mapping):
                 else:
                     raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                predicting_strategy = self._predicate_predicting_strategies.get(triplet_name, None)
+                predicting_strategy = self._predicate_predicting_strategies.get(
+                    triplet_name, None
+                )
                 if isinstance(predicting_strategy, PredictOp):
                     strategy_config = rest.OperatorPredictingConfig(
                         operator_config=predicting_strategy.to_rest()
@@ -292,7 +316,9 @@ class SPGTypeMapping(Mapping):
 
         for triplet_name, src_name in self._relation_mapping.items():
             if src_name:
-                linking_strategy = self._object_linking_strategies.get(triplet_name, None)
+                linking_strategy = self._object_linking_strategies.get(
+                    triplet_name, None
+                )
                 if isinstance(linking_strategy, LinkOp):
                     strategy_config = rest.OperatorLinkingConfig(
                         operator_config=linking_strategy.to_rest()
@@ -304,7 +330,9 @@ class SPGTypeMapping(Mapping):
                 else:
                     raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                predicting_strategy = self._predicate_predicting_strategies.get(triplet_name, None)
+                predicting_strategy = self._predicate_predicting_strategies.get(
+                    triplet_name, None
+                )
                 if isinstance(predicting_strategy, PredictOp):
                     strategy_config = rest.OperatorPredictingConfig(
                         operator_config=predicting_strategy.to_rest()
@@ -319,7 +347,7 @@ class SPGTypeMapping(Mapping):
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    target=triplet_name[1] + '#' + triplet_name[2],
+                    target=triplet_name[1] + "#" + triplet_name[2],
                     strategy_config=strategy_config,
                     mapping_type=MappingTypeEnum.Relation,
                 )
@@ -343,12 +371,15 @@ class SPGTypeMapping(Mapping):
                 f"Invalid fusing_strategy [{self.subject_fusing_strategy}]."
             )
 
-        for (triplet_name, mapping_type), sub_mapping in self._sub_property_mapping.items():
+        for (
+            triplet_name,
+            mapping_type,
+        ), sub_mapping in self._sub_property_mapping.items():
             for tgt_name, src_name in sub_mapping.items():
                 mapping_configs.append(
                     rest.MappingConfig(
                         source=src_name,
-                        target=triplet_name[1] + '#' + triplet_name[2] + '#' + tgt_name,
+                        target=triplet_name[1] + "#" + triplet_name[2] + "#" + tgt_name,
                         strategy_config=None,
                         mapping_type=mapping_type,
                     )

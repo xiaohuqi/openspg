@@ -12,7 +12,12 @@
 
 import pprint
 from typing import Dict, Any, List, Tuple
-from knext.common.schema_helper import SPGTypeName, PropertyName, RelationName, TripletName
+from knext.common.schema_helper import (
+    SPGTypeName,
+    PropertyName,
+    RelationName,
+    TripletName,
+)
 
 
 class SPGRecord:
@@ -83,7 +88,9 @@ class SPGRecord:
         """
         self._relations = relations
 
-    def get_property(self, property_name: PropertyName, default_value: str = None) -> str:
+    def get_property(
+        self, property_name: PropertyName, default_value: str = None
+    ) -> str:
         """Gets a property of this SPGRecord by name.  # noqa: E501
 
 
@@ -138,7 +145,12 @@ class SPGRecord:
             triplet_name = (self.spg_type_name, property_name, None)
             self.properties.pop(triplet_name)
 
-    def get_relation(self, relation_name: RelationName, object_type_name: SPGTypeName, default_value: str = None) -> str:
+    def get_relation(
+        self,
+        relation_name: RelationName,
+        object_type_name: SPGTypeName,
+        default_value: str = None,
+    ) -> str:
         """Gets a relation of this SPGRecord by name.  # noqa: E501
 
 
@@ -151,7 +163,9 @@ class SPGRecord:
         triplet_name = (self.spg_type_name, relation_name, object_type_name)
         return self.relations.get(triplet_name, default_value)
 
-    def upsert_relation(self, relation_name: RelationName, object_type_name: SPGTypeName, value: str):
+    def upsert_relation(
+        self, relation_name: RelationName, object_type_name: SPGTypeName, value: str
+    ):
         """Upsert a relation of this SPGRecord.  # noqa: E501
 
 
@@ -174,7 +188,9 @@ class SPGRecord:
             triplet_name = (self.spg_type_name, relation_name, object_type_name)
             self.relations[triplet_name] = value
 
-    def remove_relation(self, relation_name: RelationName, object_type_name: SPGTypeName):
+    def remove_relation(
+        self, relation_name: RelationName, object_type_name: SPGTypeName
+    ):
         """Removes a relation of this SPGRecord.  # noqa: E501
 
 
@@ -205,7 +221,17 @@ class SPGRecord:
 
         return {
             "spgTypeName": self.spg_type_name,
-            "properties": {**self.properties, **{f'{relation_name}#{object_type_name}': v for (_, relation_name, object_type_name), v in self.relations.items()}},
+            "properties": {
+                **self.properties,
+                **{
+                    f"{relation_name}#{object_type_name}": v
+                    for (
+                        _,
+                        relation_name,
+                        object_type_name,
+                    ), v in self.relations.items()
+                },
+            },
         }
 
     def __dict__(self):
@@ -223,8 +249,8 @@ class SPGRecord:
         _cls = cls(spg_type_name)
         properties = input.get("properties")
         for k, v in properties.items():
-            if '#' in k:
-                relation_name, object_type_name = k.split('#')
+            if "#" in k:
+                relation_name, object_type_name = k.split("#")
                 triplet_name = (spg_type_name, relation_name, object_type_name)
                 _cls.relations.update({triplet_name: v})
             else:

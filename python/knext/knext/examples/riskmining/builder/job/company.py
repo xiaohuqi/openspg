@@ -50,7 +50,10 @@ class CompanyHasCert(BuilderJob):
         )
 
         mapping = (
-            SPGTypeMapping(spg_type_name=RiskMining.Company, fusing_strategy=FusingStrategyEnum.NotImport)
+            SPGTypeMapping(
+                spg_type_name=RiskMining.Company,
+                fusing_strategy=FusingStrategyEnum.NotImport,
+            )
             .add_property_mapping("src", RiskMining.Company.id)
             .add_relation_mapping("dst", "hasCert", RiskMining.Cert)
         )

@@ -47,7 +47,10 @@ def get_llm_based_extractor_config(nn_config):
     params = dict()
     params["model_config"] = json.dumps(nn_config)
     params["prompt_config"] = json.dumps(
-        [OperatorClient().serialize(operator_config_1), OperatorClient().serialize(operator_config_2)]
+        [
+            OperatorClient().serialize(operator_config_1),
+            OperatorClient().serialize(operator_config_2),
+        ]
     )
 
     operator_config = get_op_config("_BuiltInOnlineExtractor", params)
@@ -63,7 +66,6 @@ def get_test_extract_data():
 
 
 class TestExtractOp(ExtractOp):
-
     def invoke(self, record: Dict[str, str]) -> List[SPGRecord]:
         spg_type = record["type"]
         properties = json.loads(record["properties"])
@@ -92,16 +94,15 @@ Answer:
     """
 
     def build_prompt(self, variables: Dict[str, str]) -> str:
-        return self.template\
-            .replace("${question}", variables.get("input"))\
-            .replace("${instruction}", variables.get("TestPromptOp1"))
+        return self.template.replace("${question}", variables.get("input")).replace(
+            "${instruction}", variables.get("TestPromptOp1")
+        )
 
     def parse_response(self, response: str) -> List[SPGRecord]:
         pass
 
 
 class MockLLMInvoker:
-
     @classmethod
     def from_config(cls):
         return cls()
@@ -118,30 +119,29 @@ def test_user_defined_extractor():
 
     assert extract.id == id(extract)
     assert extract.name == "UserDefinedExtractor"
-    assert extract.to_dict() == {
-        "id": id(extract),
-        "name": "UserDefinedExtractor"
-    }
-    assert extract.to_rest() == rest.Node(**extract.to_dict(), node_config=get_user_defined_extractor_config(params))
+    assert extract.to_dict() == {"id": id(extract), "name": "UserDefinedExtractor"}
+    assert extract.to_rest() == rest.Node(
+        **extract.to_dict(), node_config=get_user_defined_extractor_config(params)
+    )
 
 
 def test_llm_based_extractor():
 
-    nn_config = {
-        "config1": "1",
-        "config2": "2"
-    }
+    nn_config = {"config1": "1", "config2": "2"}
 
     from nn4k.invoker import LLMInvoker
-    extract = LLMBasedExtractor(llm=LLMInvoker.from_config(nn_config), prompt_ops=[TestPromptOp1(), TestPromptOp2])
+
+    extract = LLMBasedExtractor(
+        llm=LLMInvoker.from_config(nn_config),
+        prompt_ops=[TestPromptOp1(), TestPromptOp2],
+    )
 
     assert extract.id == id(extract)
     assert extract.name == "LLMBasedExtractor"
-    assert extract.to_dict() == {
-        "id": id(extract),
-        "name": "LLMBasedExtractor"
-    }
-    assert extract.to_rest() == rest.Node(**extract.to_dict(), node_config=get_llm_based_extractor_config(nn_config))
+    assert extract.to_dict() == {"id": id(extract), "name": "LLMBasedExtractor"}
+    assert extract.to_rest() == rest.Node(
+        **extract.to_dict(), node_config=get_llm_based_extractor_config(nn_config)
+    )
 
 
 # def test_builtin_online_extractor():

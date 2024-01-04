@@ -99,9 +99,7 @@ input:${input}
             else:
                 subject_properties[spo_en_name] = spo_item["object"]
 
-        subject_entity = SPGRecord(
-            spg_type_name=self.spg_type_name
-        )
+        subject_entity = SPGRecord(spg_type_name=self.spg_type_name)
         subject_entity.properties = subject_properties
         result.append(subject_entity)
         return result
