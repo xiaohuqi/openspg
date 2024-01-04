@@ -348,21 +348,17 @@ class SPGSchemaMarkLang:
             self.parsing_register[RegisterUnit.Type].desc = meta_value
 
         elif type_meta == "properties":
-            assert (
-                self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
-                    SpgTypeEnum.Standard
-                ]
-            ), self.error_msg("Standard type does not allow defining properties.")
+            assert self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+                SpgTypeEnum.Standard
+            ], self.error_msg("Standard type does not allow defining properties.")
             self.save_register(
                 RegisterUnit.Property, Property(name="_", object_type_name="Thing")
             )
 
         elif type_meta == "relations":
-            assert (
-                    self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+            assert self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
                 SpgTypeEnum.Standard
-            ]
-            ), self.error_msg("Standard type does not allow defining relations.")
+            ], self.error_msg("Standard type does not allow defining relations.")
             self.save_register(
                 RegisterUnit.Relation, Relation(name="_", object_type_name="Thing")
             )
@@ -1222,7 +1218,8 @@ class SPGSchemaMarkLang:
                         and not o.is_dynamic
                         and not (
                             new_type.spg_type_enum == SpgTypeEnum.Concept
-                            and p_name in [member.value for member in HypernymPredicateEnum]
+                            and p_name
+                            in [member.value for member in HypernymPredicateEnum]
                         )
                     ):
                         assert inherited_type is None, self.error_msg(
@@ -1260,7 +1257,11 @@ class SPGSchemaMarkLang:
             hyp_predicate = [member.value for member in HypernymPredicateEnum]
             for relation in session.get(spg_type_name).relations:
                 rel = relation.split("_")[0]
-                if rel in relations or rel in hyp_predicate or rel in session.get(spg_type_name).properties:
+                if (
+                    rel in relations
+                    or rel in hyp_predicate
+                    or rel in session.get(spg_type_name).properties
+                ):
                     continue
                 relations.add(rel)
             spg_types.append(
