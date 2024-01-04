@@ -348,15 +348,21 @@ class SPGSchemaMarkLang:
             self.parsing_register[RegisterUnit.Type].desc = meta_value
 
         elif type_meta == "properties":
-            # assert (
-            #     self.parsing_register[RegisterUnit.Type].spg_type_enum
-            #     != SpgTypeEnum.Concept
-            # ), self.error_msg("Concept type does not allow defining properties.")
+            assert (
+                self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+                    SpgTypeEnum.Standard
+                ]
+            ), self.error_msg("Standard type does not allow defining properties.")
             self.save_register(
                 RegisterUnit.Property, Property(name="_", object_type_name="Thing")
             )
 
         elif type_meta == "relations":
+            assert (
+                    self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+                SpgTypeEnum.Standard
+            ]
+            ), self.error_msg("Standard type does not allow defining relations.")
             self.save_register(
                 RegisterUnit.Relation, Relation(name="_", object_type_name="Thing")
             )
@@ -457,20 +463,24 @@ class SPGSchemaMarkLang:
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define synonym/antonym relation"
             )
-            assert subject_type.name == predicate_class_ns, self.error_msg(
-                "Synonymy/antonym relation should be self-referential"
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "Synonymy/antonym relation can only point to concept types"
             )
         elif short_name == "CAU":
             assert subject_type.spg_type_enum in [
                 SpgTypeEnum.Concept,
                 SpgTypeEnum.Event,
-            ], self.error_msg("Only concept types could define causal relation")
+            ], self.error_msg("Only concept/event types could define causal relation")
             assert object_type.spg_type_enum in [
                 SpgTypeEnum.Concept,
                 SpgTypeEnum.Event,
             ], self.error_msg(
                 f'"{predicate_class}" must be a concept type to conform to the definition of causal relation'
             )
+            if subject_type.spg_type_enum == SpgTypeEnum.Concept:
+                assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                    "The causal relation of concept types can only point to concept types"
+                )
         elif short_name == "SEQ":
             assert subject_type.spg_type_enum in [
                 SpgTypeEnum.Event,
@@ -495,9 +505,15 @@ class SPGSchemaMarkLang:
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define inclusive relation"
             )
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "The inclusion relation of concept types can only point to concept types"
+            )
         elif short_name == "USE":
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define usage relation"
+            )
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "The usage relation of concept types can only point to concept types"
             )
 
     def parse_predicate(self, expression):
@@ -656,6 +672,9 @@ class SPGSchemaMarkLang:
 
         else:
             # predicate is relation
+            assert not predicate_class.startswith("STD."), self.error_msg(
+                f"{predicate_class} is not allow appear in the definition of relation."
+            )
             assert predicate_class in self.types, self.error_msg(
                 f"{predicate_class} is illegal, please ensure that it appears in this schema."
             )
