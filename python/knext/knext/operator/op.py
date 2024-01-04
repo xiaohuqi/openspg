@@ -10,16 +10,12 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 from abc import ABC
-from typing import List, Dict, Any, Tuple, TypeVar
+from typing import List, Dict, Any, Tuple
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeName, PropertyName
 from knext.operator.base import BaseOp
 from knext.operator.invoke_result import InvokeResult
 from knext.operator.spg_record import SPGRecord
-
-
-SPGTypeName = TypeVar("SPGTypeName", str, SPGTypeHelper)
-PropertyName = TypeVar("PropertyName", str, PropertyHelper)
 
 
 class ExtractOp(BaseOp, ABC):

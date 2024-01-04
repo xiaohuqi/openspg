@@ -52,7 +52,6 @@ def append_python_path(path: str) -> bool:
     """
     Append the given path to `sys.path`.
     """
-    # In some environments, such as TC, it fails when sys.path contains a relative path, such as ".".
     path = Path(path).resolve()
     path = str(path)
     if path not in sys.path:
