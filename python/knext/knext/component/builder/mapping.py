@@ -284,7 +284,7 @@ class SPGTypeMapping(Mapping):
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    target=triplet_name[1] + '#' + triplet_name[2],
+                    target=triplet_name[1],
                     strategy_config=strategy_config,
                     mapping_type=MappingTypeEnum.Property,
                 )
