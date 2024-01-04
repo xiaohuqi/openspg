@@ -5,6 +5,8 @@ from knext.api.component import CSVReader, SPGTypeMapping, KGWriter
 
 from schema.test_schema_helper import TEST
 
+from knext.component.builder.mapping import LinkingStrategyEnum
+
 
 class Test(BuilderJob):
     def build(self):
@@ -37,12 +39,12 @@ class Test(BuilderJob):
             .add_property_mapping("float", TEST.CenterEvent.basicFloatProperty)
             .add_property_mapping("standard", TEST.CenterEvent.standardProperty)
             .add_property_mapping(
-                "concept", TEST.CenterEvent.conceptProperty, TEST.Concept1
+                "concept", TEST.CenterEvent.conceptProperty, TEST.Concept1, LinkingStrategyEnum.IDEquals
             )
             .add_sub_property_mapping("confidence_concept", "confidence")
-            .add_property_mapping("entity", TEST.CenterEvent.subject, TEST.Entity1)
+            .add_property_mapping("entity", TEST.CenterEvent.subject, TEST.Entity1, LinkingStrategyEnum.IDEquals)
             .add_relation_mapping(
-                "event", TEST.CenterEvent.eventRelation, TEST.CenterEvent
+                "event", TEST.CenterEvent.eventRelation, TEST.CenterEvent, LinkingStrategyEnum.IDEquals
             )
             .add_sub_property_mapping("confidence_event", "confidence")
             .add_sub_property_mapping("source_event", "source")
@@ -63,10 +65,10 @@ class Test(BuilderJob):
             .add_property_mapping("concept", TEST.Concept1.id)
             .add_property_mapping("concept", TEST.Concept1.name)
             .add_relation_mapping(
-                "lead_to_concept2", TEST.Concept1.leadTo, TEST.Concept2
+                "lead_to_concept2", TEST.Concept1.leadTo, TEST.Concept2, LinkingStrategyEnum.IDEquals
             )
             .add_relation_mapping(
-                "lead_to_concept3", TEST.Concept1.leadTo, TEST.Concept3
+                "lead_to_concept3", TEST.Concept1.leadTo, TEST.Concept3, LinkingStrategyEnum.IDEquals
             )
         )
 

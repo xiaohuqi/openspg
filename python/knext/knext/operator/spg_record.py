@@ -49,7 +49,7 @@ class SPGRecord:
         self._spg_type_name = spg_type_name
 
     @property
-    def properties(self) -> Dict[TripletName, str]:
+    def properties(self) -> Dict[PropertyName, str]:
         """Gets the properties of this SPGRecord.  # noqa: E501
 
 
@@ -59,7 +59,7 @@ class SPGRecord:
         return self._properties
 
     @properties.setter
-    def properties(self, properties: Dict[TripletName, str]):
+    def properties(self, properties: Dict[PropertyName, str]):
         """Sets the properties of this SPGRecord.
 
 
@@ -69,7 +69,7 @@ class SPGRecord:
         self._properties = properties
 
     @property
-    def relations(self) -> Dict[TripletName, str]:
+    def relations(self) -> Dict[str, str]:
         """Gets the relations of this SPGRecord.  # noqa: E501
 
 
@@ -79,7 +79,7 @@ class SPGRecord:
         return self._relations
 
     @relations.setter
-    def relations(self, relations: Dict[TripletName, str]):
+    def relations(self, relations: Dict[str, str]):
         """Sets the properties of this SPGRecord.
 
 
@@ -99,8 +99,7 @@ class SPGRecord:
         :return: A property value.  # noqa: E501
         :rtype: str
         """
-        triplet_name = (self.spg_type_name, property_name, None)
-        return self.properties.get(triplet_name, default_value)
+        return self.properties.get(property_name, default_value)
 
     def upsert_property(self, property_name: PropertyName, value: str):
         """Upsert a property of this SPGRecord.  # noqa: E501
@@ -110,8 +109,7 @@ class SPGRecord:
         :param value: The updated property value.  # noqa: E501
         :type: str
         """
-        triplet_name = (self.spg_type_name, property_name, None)
-        self.properties[triplet_name] = value
+        self.properties[property_name] = value
 
     def upsert_properties(self, properties: Dict[PropertyName, str]):
         """Upsert properties of this SPGRecord.  # noqa: E501
@@ -120,9 +118,7 @@ class SPGRecord:
         :param properties: The updated properties.  # noqa: E501
         :type: dict
         """
-        for property_name, value in properties.items():
-            triplet_name = (self.spg_type_name, property_name, None)
-            self.properties[triplet_name] = value
+        self.properties.update(properties)
 
     def remove_property(self, property_name: PropertyName):
         """Removes a property of this SPGRecord.  # noqa: E501
@@ -131,8 +127,7 @@ class SPGRecord:
         :param property_name: The property name.  # noqa: E501
         :type: str
         """
-        triplet_name = (self.spg_type_name, property_name, None)
-        self.properties.pop(triplet_name)
+        self.properties.pop(property_name)
 
     def remove_properties(self, property_names: List[PropertyName]):
         """Removes properties by given names.  # noqa: E501
@@ -142,8 +137,7 @@ class SPGRecord:
         :type: list
         """
         for property_name in property_names:
-            triplet_name = (self.spg_type_name, property_name, None)
-            self.properties.pop(triplet_name)
+            self.properties.pop(property_name)
 
     def get_relation(
         self,
@@ -160,8 +154,7 @@ class SPGRecord:
         :return: A relation value.  # noqa: E501
         :rtype: str
         """
-        triplet_name = (self.spg_type_name, relation_name, object_type_name)
-        return self.relations.get(triplet_name, default_value)
+        return self.relations.get(relation_name + "#" + object_type_name, default_value)
 
     def upsert_relation(
         self, relation_name: RelationName, object_type_name: SPGTypeName, value: str
@@ -174,8 +167,7 @@ class SPGRecord:
         :param value: The updated relation value.  # noqa: E501
         :type: str
         """
-        triplet_name = (self.spg_type_name, relation_name, object_type_name)
-        self.relations[triplet_name] = value
+        self.relations[relation_name + "#" + object_type_name] = value
 
     def update_relations(self, relations: Dict[Tuple[RelationName, SPGTypeName], str]):
         """Updates relations of this SPGRecord.  # noqa: E501
@@ -185,8 +177,7 @@ class SPGRecord:
         :type: dict
         """
         for (relation_name, object_type_name), value in relations.items():
-            triplet_name = (self.spg_type_name, relation_name, object_type_name)
-            self.relations[triplet_name] = value
+            self.relations[relation_name + "#" + object_type_name] = value
 
     def remove_relation(
         self, relation_name: RelationName, object_type_name: SPGTypeName
@@ -198,8 +189,7 @@ class SPGRecord:
         :param object_type_name: The object SPG type name.  # noqa: E501
         :type: str
         """
-        triplet_name = (self.spg_type_name, relation_name, object_type_name)
-        self.relations.pop(triplet_name)
+        self.relations.pop(relation_name + "#" + object_type_name)
 
     def remove_relations(self, relation_names: List[Tuple[RelationName, SPGTypeName]]):
         """Removes relations by given names.  # noqa: E501
@@ -209,8 +199,7 @@ class SPGRecord:
         :type: list
         """
         for (relation_name, object_type_name) in relation_names:
-            triplet_name = (self.spg_type_name, relation_name, object_type_name)
-            self.relations.pop(triplet_name)
+            self.relations.pop(relation_name + "#" + object_type_name)
 
     def to_str(self):
         """Returns the string representation of the model"""
@@ -223,14 +212,7 @@ class SPGRecord:
             "spgTypeName": self.spg_type_name,
             "properties": {
                 **self.properties,
-                **{
-                    f"{relation_name}#{object_type_name}": v
-                    for (
-                        _,
-                        relation_name,
-                        object_type_name,
-                    ), v in self.relations.items()
-                },
+                **self.relations,
             },
         }
 
@@ -251,8 +233,7 @@ class SPGRecord:
         for k, v in properties.items():
             if "#" in k:
                 relation_name, object_type_name = k.split("#")
-                triplet_name = (spg_type_name, relation_name, object_type_name)
-                _cls.relations.update({triplet_name: v})
+                _cls.relations.update({relation_name + "#" + object_type_name: v})
             else:
                 _cls.properties.update({k: v})
 

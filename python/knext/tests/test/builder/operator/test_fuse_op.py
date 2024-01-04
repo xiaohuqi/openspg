@@ -26,11 +26,11 @@ class TestFuseOp(FuseOp):
         print(subject_record)
 
         linked_record = subject_record
-        linked_record.update_property(
-            "id", linked_record.get_property("id") + "_linked"
+        linked_record.upsert_property(
+            "id", linked_record.get_property("id", "") + "_linked"
         )
-        linked_record.update_property(
-            "name", linked_record.get_property("name") + "_linked"
+        linked_record.upsert_property(
+            "name", linked_record.get_property("name", "") + "_linked"
         )
         print("TestFuseOp.link(Output): ")
         print("----------------------")
@@ -45,14 +45,14 @@ class TestFuseOp(FuseOp):
         print(f"subject_record: {subject_record}, linked_records: {linked_records}")
 
         merged_record = subject_record
-        merged_record.update_property(
+        merged_record.upsert_property(
             "id",
-            "_".join([r.get_property("id") for r in linked_records + [subject_record]]),
+            "_".join([r.get_property("id", "") for r in linked_records + [subject_record]]),
         )
-        merged_record.update_property(
+        merged_record.upsert_property(
             "name",
             "_".join(
-                [r.get_property("name") for r in linked_records + [subject_record]]
+                [r.get_property("name", "") for r in linked_records + [subject_record]]
             ),
         )
         print("TestFuseOp.merge(Output): ")

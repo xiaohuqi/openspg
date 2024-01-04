@@ -410,6 +410,83 @@ class SPGTypeMapping(Mapping):
         )
 
 
+class RelationMapping(Mapping):
+    """A Process Component that mapping data to relation type.
+
+    Args:
+        subject_name: The subject name import from SPGTypeHelper.
+        predicate_name: The predicate name.
+        object_name: The object name import from SPGTypeHelper.
+    Examples:
+        mapping = RelationMapping(
+                    subject_name=DEFAULT.App,
+                    predicate_name=DEFAULT.App.useCert,
+                    object_name=DEFAULT.Cert,
+                ).add_mapping_field("src_id", "srcId") \
+                 .add_mapping_field("dst_id", "dstId")
+
+    """
+
+    """The SPG type names of (subject, predicate, object) triplet imported from SPGTypeHelper and PropertyHelper."""
+    subject_name: SPGTypeName
+    predicate_name: RelationName
+    object_name: SPGTypeName
+
+    mapping: Dict[str, str] = dict()
+
+    filters: List[Tuple[str, str]] = list()
+
+    def add_mapping_field(self, source_field: str, target_field: str):
+        """Adds a field mapping from source data to property of spg_type.
+
+        :param source_field: The source field to be mapped.
+        :param target_field: The target field to map the source field to.
+        :return: self
+        """
+        self.mapping[target_field] = source_field
+        return self
+
+    def add_filter(self, column_name: str, column_value: str):
+        """Adds data filtering rule.
+        Only the column that meets `column_ame=column_value` will execute the mapping.
+
+        :param column_name: The column name to be filtered.
+        :param column_value: The column value to be filtered.
+        :return: self
+        """
+        self.filters.append((column_name, column_value))
+        return self
+
+    def to_rest(self):
+        """Transforms `RelationMappingComponent` to REST model `MappingNodeConfig`."""
+
+        mapping_filters = [
+            rest.MappingFilter(column_name=name, column_value=value)
+            for name, value in self.filters
+        ]
+        mapping_configs = [
+            rest.MappingConfig(source=src_name, target=tgt_name)
+            for tgt_name, src_name in self.mapping.items()
+        ]
+
+        config = rest.RelationMappingNodeConfig(
+            relation=f"{self.subject_name}_{self.predicate_name}_{self.object_name}",
+            mapping_filters=mapping_filters,
+            mapping_configs=mapping_configs,
+        )
+        return rest.Node(**super().to_dict(), node_config=config)
+
+    @classmethod
+    def from_rest(cls, node: rest.Node):
+        pass
+
+    def invoke(self, input: Input) -> Sequence[Output]:
+        pass
+
+    def submit(self):
+        pass
+
+
 class _SPGTypeMappings(Mapping):
 
     spg_type_mappings: List[SPGTypeMapping]

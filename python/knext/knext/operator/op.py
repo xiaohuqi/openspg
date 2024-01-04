@@ -115,6 +115,7 @@ class FuseOp(BaseOp, ABC):
         if isinstance(output, tuple):
             return InvokeResult[List[SPGRecord]](*output[:3]).to_dict()
         else:
+            print(output)
             return InvokeResult[List[SPGRecord]](output).to_dict()
 
 
