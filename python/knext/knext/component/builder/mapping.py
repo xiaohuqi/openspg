@@ -28,7 +28,7 @@ class LinkingStrategyEnum(str, Enum):
 
 
 class FusingStrategyEnum(str, Enum):
-    pass
+    NotImport = "NOT_IMPORT"
 
 
 class PredictingStrategyEnum(str, Enum):
@@ -329,6 +329,8 @@ class SPGTypeMapping(Mapping):
             fusing_config = rest.OperatorFusingConfig(
                 operator_config=self.fusing_strategy.to_rest()
             )
+        elif self.fusing_strategy == FusingStrategyEnum.NotImport:
+            fusing_config = rest.NotImportFusingConfig()
         elif not self.fusing_strategy:
             if self.spg_type_name in FuseOp.bind_schemas:
                 op_name = FuseOp.bind_schemas[self.spg_type_name]
@@ -375,3 +377,11 @@ class SPGTypeMapping(Mapping):
         raise NotImplementedError(
             f"`submit` method is not currently supported for {self.__class__.__name__}."
         )
+
+
+class _SPGTypeMappings(Mapping):
+
+    spg_type_mappings: List[SPGTypeMapping]
+
+    def to_rest(self):
+        return

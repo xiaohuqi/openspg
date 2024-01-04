@@ -11,7 +11,7 @@
 
 import json
 from abc import ABC
-from typing import Union, List, Dict, Tuple
+from typing import List, Dict, Tuple
 
 from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient

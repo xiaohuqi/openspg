@@ -75,8 +75,8 @@ class Component(Runnable, RESTable, ABC):
         if not isinstance(other, list):
             other = [other]
         dag_list = []
-        # if all(isinstance(o, Mapping) for o in other):
-        #     other = Mapping.sort_by_dependency(other)
+        if all(isinstance(o, Mapping) for o in other):
+            other = Mapping.sort_by_dependency(other)
         for o in other:
             if not o:
                 dag = nx.DiGraph()

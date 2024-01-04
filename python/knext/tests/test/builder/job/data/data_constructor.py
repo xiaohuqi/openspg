@@ -53,7 +53,10 @@ def mock_data():
     _source_event = mock_str(10)
     _entity = str(mock_int(100, 200))
     _entity_relation = str(mock_int(100, 200))
-    return [_id, _text, _integer, _float, _standard, _concept, _lead_to_concept, _relevant_event_id, _subject_entity_id, _subject_relation_id]
+    return [_id, _text, _integer, _float, _standard,
+            _concept, _confidence_concept, _lead_to_concept2, _lead_to_concept3,
+            _event, _confidence_event, _source_event,
+            _entity, _entity_relation]
 
 
 if __name__ == '__main__':
@@ -64,7 +67,7 @@ if __name__ == '__main__':
      "entity", "entity_relation"],
     """
     import csv
-    data_count = 1000
+    data_count = 1
 
     with open('data.csv', 'a', newline='') as file:
         for _ in range(data_count):
