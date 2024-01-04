@@ -18,6 +18,7 @@ public enum NodeTypeEnum {
   CSV_SOURCE,
 
   /** MAPPING Component */
+  RELATION_MAPPING,
   SPG_TYPE_MAPPING,
   SPG_TYPE_MAPPINGS,
 

@@ -5,6 +5,7 @@ import com.antgroup.openspg.builder.core.strategy.fusing.EntityFusing;
 import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.FusingException;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
+
 import java.util.Collections;
 import java.util.List;
 

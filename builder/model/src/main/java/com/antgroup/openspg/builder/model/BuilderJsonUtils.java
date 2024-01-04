@@ -49,6 +49,8 @@ public class BuilderJsonUtils {
                     .registerSubtype(
                         SPGTypeMappingNodeConfig.class, NodeTypeEnum.SPG_TYPE_MAPPING.name())
                     .registerSubtype(
+                        RelationMappingNodeConfig.class, NodeTypeEnum.RELATION_MAPPING.name())
+                    .registerSubtype(
                         SPGTypeMappingNodeConfigs.class, NodeTypeEnum.SPG_TYPE_MAPPINGS.name())
                     .registerSubtype(GraphStoreSinkNodeConfig.class, NodeTypeEnum.GRAPH_SINK.name())
                     .recognizeSubtypes())

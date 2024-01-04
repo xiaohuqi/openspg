@@ -6,7 +6,6 @@ import com.antgroup.openspg.builder.core.strategy.fusing.SubjectFusing;
 import com.antgroup.openspg.builder.core.strategy.fusing.SubjectFusingImpl;
 import com.antgroup.openspg.builder.core.strategy.linking.RecordLinking;
 import com.antgroup.openspg.builder.core.strategy.linking.RecordLinkingImpl;
-import com.antgroup.openspg.builder.core.strategy.linking.impl.SearchBasedLinking;
 import com.antgroup.openspg.builder.core.strategy.predicting.RecordPredicting;
 import com.antgroup.openspg.builder.core.strategy.predicting.RecordPredictingImpl;
 import com.antgroup.openspg.builder.model.exception.BuilderRecordException;
@@ -60,7 +59,6 @@ public class SPGTypeMappingHelper {
                     config.getRelationLinkingConfigs().stream())
                 .collect(Collectors.toList()));
     this.recordLinking.init(context);
-    this.recordLinking.setDefaultPropertyLinking(new SearchBasedLinking());
 
     this.recordPredicting =
         new RecordPredictingImpl(
