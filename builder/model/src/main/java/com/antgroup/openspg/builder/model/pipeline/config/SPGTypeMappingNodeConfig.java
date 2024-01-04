@@ -18,6 +18,7 @@ import com.antgroup.openspg.builder.model.pipeline.enums.NodeTypeEnum;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
@@ -40,11 +41,21 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
 
   @Getter
   @AllArgsConstructor
+  @EqualsAndHashCode
   public static class MappingConfig {
     private final String source;
     private final String target;
-    private final BaseStrategyConfig strategyConfig;
+    @EqualsAndHashCode.Exclude private final BaseStrategyConfig strategyConfig;
     private final MappingType mappingType;
+
+    public String getFirstSplit() {
+      return target.split("#")[0];
+    }
+
+    public String getFirst2Split() {
+      String[] splits = target.split("#");
+      return String.format("%s#%s", splits[0], splits[1]);
+    }
 
     public boolean isPropertyLinking() {
       return mappingType.equals(MappingType.PROPERTY) && source != null;

@@ -22,6 +22,7 @@ import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
 import com.antgroup.openspg.core.schema.model.type.SPGTypeEnum;
 import com.antgroup.openspg.core.schema.model.type.WithBasicInfo;
 import com.antgroup.openspg.core.schema.model.type.WithSPGTypeEnum;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,6 +74,13 @@ public abstract class BaseAdvancedRecord extends BaseSPGRecord
     if (!find) {
       addSpgProperties(otherRecord);
     }
+  }
+
+  public void addRelationRecord(RelationRecord relationRecord) {
+    if (relationRecords == null) {
+      relationRecords = new ArrayList<>();
+    }
+    relationRecords.add(relationRecord);
   }
 
   @Override

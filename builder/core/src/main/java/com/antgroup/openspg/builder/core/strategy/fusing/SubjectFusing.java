@@ -18,9 +18,11 @@ import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.FusingException;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
 
+import java.util.List;
+
 public interface SubjectFusing {
 
   void init(BuilderContext context) throws BuilderException;
 
-  BaseAdvancedRecord fusing(BaseAdvancedRecord advancedRecord) throws FusingException;
+  List<BaseAdvancedRecord> fusing(List<BaseAdvancedRecord> advancedRecord) throws FusingException;
 }

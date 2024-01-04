@@ -22,6 +22,7 @@ import com.antgroup.openspg.core.schema.model.identifier.BaseSPGIdentifier;
 import com.antgroup.openspg.core.schema.model.identifier.SPGIdentifierTypeEnum;
 import com.antgroup.openspg.core.schema.model.identifier.SPGTypeIdentifier;
 import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
+import com.google.common.collect.Lists;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -103,12 +104,15 @@ public class SPGTypeMappingHelper {
     Map<String, String> propertyValues = propertyMapping(record);
     Map<String, String> relationValues = relationMapping(record);
 
-    BaseAdvancedRecord advancedRecord = toAdvancedRecord(propertyValues, relationValues);
-    List<RelationRecord> relationRecords = advancedRecord.getRelationRecords();
-
-    List<BaseSPGRecord> results = new ArrayList<>(relationRecords.size() + 1);
-    results.addAll(relationRecords);
-    results.add(advancedRecord);
+    List<BaseSPGRecord> results = new ArrayList<>();
+    List<BaseAdvancedRecord> advancedRecords = toAdvancedRecord(propertyValues, relationValues);
+    for (BaseAdvancedRecord advancedRecord : advancedRecords) {
+      for (RelationRecord relationRecord : advancedRecord.getRelationRecords()) {
+        relationRecord.setSrcId(advancedRecord.getId());
+        results.add(relationRecord);
+      }
+      results.add(advancedRecord);
+    }
     return results;
   }
 
@@ -124,6 +128,9 @@ public class SPGTypeMappingHelper {
     for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : propertyLinkingConfigs) {
       String source = mappingConfig.getSource();
       String target = mappingConfig.getTarget();
+      if (source == null) {
+        continue;
+      }
 
       String sourceValue = record.getPropValue(source);
       if (sourceValue != null) {
@@ -144,6 +151,9 @@ public class SPGTypeMappingHelper {
     for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : relationMappingConfigs) {
       String source = mappingConfig.getSource();
       String target = mappingConfig.getTarget();
+      if (source == null) {
+        continue;
+      }
 
       String sourceValue = record.getPropValue(source);
       if (sourceValue != null) {
@@ -165,7 +175,7 @@ public class SPGTypeMappingHelper {
     return relationValues;
   }
 
-  private BaseAdvancedRecord toAdvancedRecord(
+  private List<BaseAdvancedRecord> toAdvancedRecord(
       Map<String, String> propertyValues, Map<String, String> relationValues) {
     String bizId = propertyValues.get("id");
     if (StringUtils.isBlank(bizId)) {
@@ -179,6 +189,6 @@ public class SPGTypeMappingHelper {
         EdgeRecordConvertor.toRelationRecords(spgType, relationValues));
     recordLinking.linking(advancedRecord);
     recordPredicting.predicting(advancedRecord);
-    return subjectFusing.fusing(advancedRecord);
+    return subjectFusing.fusing(Lists.newArrayList(advancedRecord));
   }
 }
