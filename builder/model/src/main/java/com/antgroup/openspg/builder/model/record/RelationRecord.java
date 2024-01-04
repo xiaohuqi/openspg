@@ -27,7 +27,7 @@ public class RelationRecord extends BaseSPGRecord {
   @Getter private final Relation relationType;
 
   @Setter @Getter private String srcId;
-  @Getter private final String dstId;
+  @Setter @Getter private String dstId;
 
   private final List<SPGSubPropertyRecord> properties;
 
