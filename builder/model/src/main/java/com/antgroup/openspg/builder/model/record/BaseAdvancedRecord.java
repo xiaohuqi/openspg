@@ -25,9 +25,14 @@ import com.antgroup.openspg.core.schema.model.type.WithSPGTypeEnum;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 public abstract class BaseAdvancedRecord extends BaseSPGRecord
     implements WithBasicInfo<SPGTypeIdentifier>, WithSPGTypeEnum {
+
+  @Setter private List<RelationRecord> relationRecords;
 
   public BaseAdvancedRecord(SPGRecordTypeEnum recordType) {
     super(recordType);

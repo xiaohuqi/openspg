@@ -42,8 +42,7 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
   @AllArgsConstructor
   public static class MappingConfig {
     private final String source;
-    private final String predicate;
-    private final String object;
+    private final String target;
     private final BaseStrategyConfig strategyConfig;
     private final MappingType mappingType;
 
@@ -61,6 +60,10 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
 
     public boolean isRelationPredicting() {
       return mappingType.equals(MappingType.RELATION) && source == null;
+    }
+
+    public boolean isSubRelationLinking() {
+      return mappingType.equals(MappingType.SUB_RELATION) && source != null;
     }
   }
 
@@ -105,6 +108,12 @@ public class SPGTypeMappingNodeConfig extends BaseNodeConfig {
   public List<MappingConfig> getRelationPredictingConfigs() {
     return mappingConfigs.stream()
         .filter(MappingConfig::isRelationPredicting)
+        .collect(Collectors.toList());
+  }
+
+  public List<MappingConfig> getSubRelationLinkingConfigs() {
+    return mappingConfigs.stream()
+        .filter(MappingConfig::isSubRelationLinking)
         .collect(Collectors.toList());
   }
 }

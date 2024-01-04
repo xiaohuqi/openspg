@@ -20,12 +20,11 @@ import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.LinkingException;
 import com.antgroup.openspg.builder.model.pipeline.config.SPGTypeMappingNodeConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.linking.BaseLinkingConfig;
+import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
 import com.antgroup.openspg.builder.model.record.BaseSPGRecord;
+import com.antgroup.openspg.builder.model.record.RelationRecord;
 import com.antgroup.openspg.builder.model.record.property.BasePropertyRecord;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -60,14 +59,23 @@ public class RecordLinkingImpl implements RecordLinking {
             PropertyLinkingFactory.getPropertyLinking(
                 (BaseLinkingConfig) mappingConfig.getStrategyConfig());
         propertyLinking.init(context);
-        semanticPropertyLinking.put(mappingConfig.getObject(), propertyLinking);
+        semanticPropertyLinking.put(mappingConfig.getTarget(), propertyLinking);
       }
     }
   }
 
   @Override
   public void linking(BaseSPGRecord spgRecord) throws LinkingException {
-    for (BasePropertyRecord propertyRecord : spgRecord.getProperties()) {
+    List<BasePropertyRecord> records = new ArrayList<>(spgRecord.getProperties());
+    if (spgRecord instanceof BaseAdvancedRecord) {
+      BaseAdvancedRecord advancedRecord = (BaseAdvancedRecord) spgRecord;
+      if (CollectionUtils.isNotEmpty(advancedRecord.getRelationRecords())) {
+        for (RelationRecord record : advancedRecord.getRelationRecords()) {
+          records.addAll(record.getProperties());
+        }
+      }
+    }
+    for (BasePropertyRecord propertyRecord : records) {
       if (propertyRecord.isSemanticProperty()) {
         PropertyLinking propertyLinking = semanticPropertyLinking.get(propertyRecord.getName());
         if (propertyLinking != null) {

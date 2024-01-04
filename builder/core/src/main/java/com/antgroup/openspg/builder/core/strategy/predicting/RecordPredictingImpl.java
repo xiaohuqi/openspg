@@ -49,7 +49,7 @@ public class RecordPredictingImpl implements RecordPredicting {
           PropertyPredictingFactory.getPropertyPredicating(
               (BasePredictingConfig) predicatingConfig.getStrategyConfig());
       propertyPredicating.init(context);
-      semanticPropertyPredicating.put(predicatingConfig.getObject(), propertyPredicating);
+      semanticPropertyPredicating.put(predicatingConfig.getTarget(), propertyPredicating);
     }
   }
 

@@ -21,11 +21,10 @@ import com.antgroup.openspg.core.schema.model.BaseOntology;
 import com.antgroup.openspg.core.schema.model.identifier.BaseSPGIdentifier;
 import com.antgroup.openspg.core.schema.model.identifier.SPGIdentifierTypeEnum;
 import com.antgroup.openspg.core.schema.model.identifier.SPGTypeIdentifier;
-import com.antgroup.openspg.core.schema.model.predicate.Relation;
 import com.antgroup.openspg.core.schema.model.type.BaseSPGType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,11 +36,8 @@ public class SPGTypeMappingHelper {
   private final SPGTypeIdentifier identifier;
   private BaseSPGType spgType;
 
-  private RecordLinking recordPropertyLinking;
-  private RecordLinking recordRelationLinking;
-
-  private RecordPredicting recordPropertyPredicting;
-  private RecordPredicting recordRelationPredicting;
+  private RecordLinking recordLinking;
+  private RecordPredicting recordPredicting;
 
   private SubjectFusing subjectFusing;
 
@@ -55,15 +51,21 @@ public class SPGTypeMappingHelper {
   public void init(BuilderContext context) {
     this.spgType = (BaseSPGType) loadSchema(identifier, context.getCatalog());
 
-    this.recordPropertyLinking = new RecordLinkingImpl(config.getPropertyLinkingConfigs());
-    this.recordPropertyLinking.init(context);
-    this.recordRelationLinking = new RecordLinkingImpl(config.getRelationLinkingConfigs());
-    this.recordRelationLinking.init(context);
+    this.recordLinking =
+        new RecordLinkingImpl(
+            Stream.concat(
+                    config.getPropertyLinkingConfigs().stream(),
+                    config.getRelationLinkingConfigs().stream())
+                .collect(Collectors.toList()));
+    this.recordLinking.init(context);
 
-    this.recordPropertyPredicting = new RecordPredictingImpl(config.getPropertyPredictingConfigs());
-    this.recordPropertyPredicting.init(context);
-    this.recordRelationPredicting = new RecordPredictingImpl(config.getRelationPredictingConfigs());
-    this.recordRelationPredicting.init(context);
+    this.recordPredicting =
+        new RecordPredictingImpl(
+            Stream.concat(
+                    config.getPropertyPredictingConfigs().stream(),
+                    config.getRelationPredictingConfigs().stream())
+                .collect(Collectors.toList()));
+    this.recordPredicting.init(context);
 
     this.subjectFusing = new SubjectFusingImpl(config.getSubjectFusingConfig());
     this.subjectFusing.init(context);
@@ -97,43 +99,86 @@ public class SPGTypeMappingHelper {
     return true;
   }
 
-  public BuilderRecord mapping(BuilderRecord record) {
-    List<SPGTypeMappingNodeConfig.MappingConfig> mappingConfigs = config.getMappingConfigs();
-    if (CollectionUtils.isEmpty(mappingConfigs)) {
-      // if empty, perform mapping with the same name
-      return record;
+  public List<BaseSPGRecord> toSPGRecords(BuilderRecord record) {
+    Map<String, String> propertyValues = propertyMapping(record);
+    Map<String, String> relationValues = relationMapping(record);
+
+    BaseAdvancedRecord advancedRecord = toAdvancedRecord(propertyValues, relationValues);
+    List<RelationRecord> relationRecords = advancedRecord.getRelationRecords();
+
+    List<BaseSPGRecord> results = new ArrayList<>(relationRecords.size() + 1);
+    results.addAll(relationRecords);
+    results.add(advancedRecord);
+    return results;
+  }
+
+  public Map<String, String> propertyMapping(BuilderRecord record) {
+    List<SPGTypeMappingNodeConfig.MappingConfig> propertyLinkingConfigs =
+        config.getPropertyLinkingConfigs();
+
+    if (CollectionUtils.isEmpty(propertyLinkingConfigs)) {
+      throw new BuilderRecordException("subjectMapping cannot be empty");
     }
-    Map<String, String> newProps = new HashMap<>(record.getProps().size());
-    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : mappingConfigs) {
+
+    Map<String, String> propertyValues = new HashMap<>(record.getProps().size());
+    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : propertyLinkingConfigs) {
       String source = mappingConfig.getSource();
-      String target = mappingConfig.getPredicate();
+      String target = mappingConfig.getTarget();
 
       String sourceValue = record.getPropValue(source);
       if (sourceValue != null) {
-        newProps.put(target, sourceValue);
+        propertyValues.put(target, sourceValue);
       }
     }
-    return record.withNewProps(newProps);
+    return propertyValues;
   }
 
-  public List<BaseSPGRecord> toSPGRecords(BuilderRecord record) {
-    return null;
+  public Map<String, String> relationMapping(BuilderRecord record) {
+    List<SPGTypeMappingNodeConfig.MappingConfig> relationMappingConfigs =
+        config.getRelationLinkingConfigs();
+    if (CollectionUtils.isEmpty(relationMappingConfigs)) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, String> relationValues = new HashMap<>(record.getProps().size());
+    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : relationMappingConfigs) {
+      String source = mappingConfig.getSource();
+      String target = mappingConfig.getTarget();
+
+      String sourceValue = record.getPropValue(source);
+      if (sourceValue != null) {
+        relationValues.put(target, sourceValue);
+      }
+    }
+
+    List<SPGTypeMappingNodeConfig.MappingConfig> subRelationLinkingConfigs =
+        config.getSubRelationLinkingConfigs();
+    for (SPGTypeMappingNodeConfig.MappingConfig mappingConfig : subRelationLinkingConfigs) {
+      String source = mappingConfig.getSource();
+      String target = mappingConfig.getTarget();
+
+      String sourceValue = record.getPropValue(source);
+      if (sourceValue != null) {
+        relationValues.put(target, sourceValue);
+      }
+    }
+    return relationValues;
   }
 
-  private BaseAdvancedRecord toSPGRecord(BuilderRecord record, BaseSPGType spgType) {
-    String bizId = record.getPropValue("id");
+  private BaseAdvancedRecord toAdvancedRecord(
+      Map<String, String> propertyValues, Map<String, String> relationValues) {
+    String bizId = propertyValues.get("id");
     if (StringUtils.isBlank(bizId)) {
       throw new BuilderRecordException("");
     }
-    return VertexRecordConvertor.toAdvancedRecord(spgType, bizId, record.getProps());
-  }
 
-  private RelationRecord toSPGRecord(BuilderRecord record, Relation relation) {
-    String srcId = record.getPropValue("srcId");
-    String dstId = record.getPropValue("dstId");
-    if (StringUtils.isBlank(srcId) || StringUtils.isBlank(dstId)) {
-      throw new BuilderRecordException("");
-    }
-    return EdgeRecordConvertor.toRelationRecord(relation, srcId, dstId, record.getProps());
+    BaseAdvancedRecord advancedRecord =
+        VertexRecordConvertor.toAdvancedRecord(spgType, bizId, propertyValues);
+
+    advancedRecord.setRelationRecords(
+        EdgeRecordConvertor.toRelationRecords(spgType, relationValues));
+    recordLinking.linking(advancedRecord);
+    recordPredicting.predicting(advancedRecord);
+    return subjectFusing.fusing(advancedRecord);
   }
 }

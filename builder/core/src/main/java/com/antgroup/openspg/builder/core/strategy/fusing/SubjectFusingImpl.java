@@ -18,7 +18,6 @@ import com.antgroup.openspg.builder.model.exception.BuilderException;
 import com.antgroup.openspg.builder.model.exception.FusingException;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.record.BaseAdvancedRecord;
-import java.util.List;
 
 public class SubjectFusingImpl implements SubjectFusing {
 
@@ -34,8 +33,7 @@ public class SubjectFusingImpl implements SubjectFusing {
   }
 
   @Override
-  public List<BaseAdvancedRecord> fusing(List<BaseAdvancedRecord> advancedRecords)
-      throws FusingException {
-    return entityFusing.fusing(advancedRecords);
+  public BaseAdvancedRecord fusing(BaseAdvancedRecord advancedRecord) throws FusingException {
+    return entityFusing.fusing(advancedRecord);
   }
 }
