@@ -94,11 +94,11 @@ class Mapping(BuilderComponent, ABC):
         from knext import rest
 
         if len(mappings) == 1:
-            return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in mappings])
+            return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest().node_config for m in mappings])
 
         sorted_mappings = sorted(mappings, key=cmp_to_key(comparator))
 
-        return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in sorted_mappings])
+        return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest().node_config for m in sorted_mappings])
 
 
 class SinkWriter(BuilderComponent, ABC):
