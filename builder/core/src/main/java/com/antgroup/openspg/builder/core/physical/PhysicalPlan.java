@@ -94,7 +94,7 @@ public class PhysicalPlan implements Serializable {
       case LLM_BASED_EXTRACT:
         return new LLMBasedExtractProcessor(
             node.getId(), node.getName(), (LLMBasedExtractNodeConfig) node.getNodeConfig());
-      case SPG_TYPE_MAPPING:
+      case SPG_TYPE_MAPPINGS:
         return new SPGTypeMappingProcessor(
             node.getId(), node.getName(), (SPGTypeMappingNodeConfigs) node.getNodeConfig());
       default:
