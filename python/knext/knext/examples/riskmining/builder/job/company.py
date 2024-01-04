@@ -16,8 +16,9 @@ from knext.api.component import (
     CSVReader,
     KGWriter,
 )
-from knext.component.builder import RelationMapping
 from schema.riskmining_schema_helper import RiskMining
+
+from knext.component.builder.mapping import FusingStrategyEnum
 
 
 class Company(BuilderJob):
@@ -30,9 +31,9 @@ class Company(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=RiskMining.Company)
-            .add_mapping_field("id", RiskMining.Company.id)
-            .add_mapping_field("name", RiskMining.Company.name)
-            .add_mapping_field("phone", RiskMining.Company.hasPhone)
+            .add_property_mapping("id", RiskMining.Company.id)
+            .add_property_mapping("name", RiskMining.Company.name)
+            .add_property_mapping("phone", RiskMining.Company.hasPhone)
         )
 
         sink = KGWriter()
@@ -49,13 +50,9 @@ class CompanyHasCert(BuilderJob):
         )
 
         mapping = (
-            RelationMapping(
-                subject_name=RiskMining.Company,
-                predicate_name="hasCert",
-                object_name=RiskMining.Cert,
-            )
-            .add_mapping_field("src", "srcId")
-            .add_mapping_field("dst", "dstId")
+            SPGTypeMapping(spg_type_name=RiskMining.Company, fusing_strategy=FusingStrategyEnum.NotImport)
+            .add_property_mapping("src", RiskMining.Company.id)
+            .add_relation_mapping("dst", "hasCert", RiskMining.Cert)
         )
 
         sink = KGWriter()

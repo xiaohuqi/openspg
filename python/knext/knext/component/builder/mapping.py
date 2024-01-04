@@ -385,4 +385,5 @@ class _SPGTypeMappings(Mapping):
 
     def to_rest(self):
         # return Mapping.sort_by_dependency(self.spg_type_mappings)
-       return rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in self.spg_type_mappings])
+        config = rest.SpgTypeMappingNodeConfigs(mapping_node_configs=[m.to_rest() for m in self.spg_type_mappings])
+        return rest.Node(**super().to_dict(), node_config=config)
