@@ -16,7 +16,6 @@ package com.antgroup.openspg.builder.model;
 import com.antgroup.openspg.builder.model.pipeline.config.*;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.BaseFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.NewInstanceFusingConfig;
-import com.antgroup.openspg.builder.model.pipeline.config.fusing.NotImportFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.fusing.OperatorFusingConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.linking.BaseLinkingConfig;
 import com.antgroup.openspg.builder.model.pipeline.config.linking.IdEqualsLinkingConfig;
@@ -64,7 +63,6 @@ public class BuilderJsonUtils {
                     .registerSubtype(OperatorFusingConfig.class, FusingTypeEnum.OPERATOR.name())
                     .registerSubtype(
                         NewInstanceFusingConfig.class, FusingTypeEnum.NEW_INSTANCE.name())
-                    .registerSubtype(NotImportFusingConfig.class, FusingTypeEnum.NOT_IMPORT.name())
                     .recognizeSubtypes())
             .registerTypeAdapterFactory(
                 RuntimeTypeAdapterFactory.of(BasePredictingConfig.class, DEFAULT_TYPE_FIELD_NAME)
