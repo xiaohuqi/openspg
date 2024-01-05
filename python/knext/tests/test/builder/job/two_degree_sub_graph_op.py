@@ -97,4 +97,4 @@ class TwoDegreeSubGraphOp(BuilderJob):
 
         sink = KGWriter()
 
-        return source >> [event_mapping, entity1_mapping, concept2_mapping, concept1_mapping, entity3_mapping, entity2_mapping, concept3_mapping] >> sink
+        return source >> [entity3_mapping, entity2_mapping, entity1_mapping, concept3_mapping, concept2_mapping, concept1_mapping, event_mapping] >> sink

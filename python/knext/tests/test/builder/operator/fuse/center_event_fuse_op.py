@@ -46,13 +46,8 @@ class CenterEventFuseOp(FuseOp):
         print("--------------------------------------------")
         print(f"subject_record: {subject_record}, linked_records: {linked_records}")
 
-        for prop_name, prop_value in subject_record.properties.items():
-            new_value = ".".join(
-                [r.get_property(prop_name, "") for r in [linked_records[0], subject_record]])
-            new_value_list = new_value.split('.')
-            if len(new_value_list) > 1:
-                new_value = new_value_list[0] + new_value_list[1]
-            subject_record.upsert_property(prop_name, new_value)
+        if linked_records:
+            subject_record.upsert_property(TEST.CenterEvent.id, linked_records[0].get_property("id"))
 
         print("CenterEventFuseOp.merge(Output): ")
         print("--------------------------------------------")
