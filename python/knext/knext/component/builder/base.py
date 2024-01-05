@@ -12,6 +12,7 @@
 
 from abc import ABC
 from enum import Enum
+from functools import cmp_to_key
 from typing import Union
 
 from knext.component.base import Component
@@ -28,12 +29,20 @@ class ComponentTypeEnum(str, Enum):
 
 
 class BuilderComponent(Component, ABC):
+    """
+    Abstract base class for all builder component.
+    """
+
     @property
     def type(self):
         return ComponentTypeEnum.__members__[self.__class__.__name__].value
 
 
 class SourceReader(BuilderComponent, ABC):
+    """
+    Abstract base class for all source reader component.
+    """
+
     @property
     def upstream_types(self):
         return None
@@ -44,6 +53,10 @@ class SourceReader(BuilderComponent, ABC):
 
 
 class SPGExtractor(BuilderComponent, ABC):
+    """
+    Abstract base class for all SPG extractor component.
+    """
+
     @property
     def upstream_types(self):
         return Union[SourceReader, SPGExtractor]
@@ -54,6 +67,10 @@ class SPGExtractor(BuilderComponent, ABC):
 
 
 class Mapping(BuilderComponent, ABC):
+    """
+    Abstract base class for all mapping component.
+    """
+
     @property
     def upstream_types(self):
         return Union[SourceReader, SPGExtractor]
@@ -62,8 +79,38 @@ class Mapping(BuilderComponent, ABC):
     def downstream_types(self):
         return Union[SinkWriter]
 
+    @staticmethod
+    def sort_by_dependency(mappings: list):
+
+        from knext.component.builder import SPGTypeMapping
+
+        def comparator(x: SPGTypeMapping, y: SPGTypeMapping):
+            if x.spg_type_name in y.dependencies:
+                return -1
+            elif y.spg_type_name in x.dependencies:
+                return 1
+            else:
+                return 0
+
+        from knext import rest
+
+        if len(mappings) == 1:
+            return rest.SpgTypeMappingNodeConfigs(
+                mapping_node_configs=[m.to_rest().node_config for m in mappings]
+            )
+
+        sorted_mappings = sorted(mappings, key=cmp_to_key(comparator))
+
+        return rest.SpgTypeMappingNodeConfigs(
+            mapping_node_configs=[m.to_rest().node_config for m in sorted_mappings]
+        )
+
 
 class SinkWriter(BuilderComponent, ABC):
+    """
+    Abstract base class for all sink writer component.
+    """
+
     @property
     def upstream_types(self):
         return Union[Mapping]

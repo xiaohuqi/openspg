@@ -12,30 +12,59 @@
 from abc import ABC
 from typing import Type, List
 
-from knext import rest
-
 
 class RESTable(ABC):
+    """
+    Abstract base class that can be serialized as REST model and submit to the SPG server.
+    """
+
     @property
     def upstream_types(self) -> List[Type["RESTable"]]:
+        """The types of upstream RESTable objects that the current RESTable object can support.
+
+        Returns: RESTable type list.
+
+        """
         return []
 
     @property
     def downstream_types(self) -> List[Type["RESTable"]]:
+        """The types of downstream RESTable objects that the current RESTable object can support.
+
+        Returns: RESTable type list.
+
+        """
         return []
 
-    def to_rest(self) -> rest.Node:
+    def to_rest(self):
+        """Convert a RESTable object to REST model that can be serialized.
+
+        Returns: REST model.
+
+        """
         raise NotImplementedError(
             f"`to_rest` is not currently supported for {self.__class__.__name__}."
         )
 
     @classmethod
-    def from_rest(cls, node: rest.Node):
+    def from_rest(cls, rest_model):
+        """Convert a REST model to RESTable object.
+
+        Args:
+            rest_model: REST model that needs to be converted to a RESTable object.
+
+        Returns: Object inherits from RESTable.
+
+        """
         raise NotImplementedError(
             f"`from_rest` is not currently supported for {cls.__name__}."
         )
 
     def submit(self):
+        """Submit to the SPG Server.
+        Usually, it is necessary to call the `to_rest` method firstly.
+
+        """
         raise NotImplementedError(
             f"`submit` is not currently supported for {self.__class__.__name__}."
         )

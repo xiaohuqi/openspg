@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from knext.client.model.builder_job import BuilderJob
-from knext.api.component import CSVReader, SPGTypeMapping, KGWriter
+from knext.api.component import CSVReader, UserDefinedExtractor, SPGTypeMapping, KGWriter
 try:
     from schema.{{helper}} import {{namespace}}
 except:
@@ -22,9 +22,9 @@ class Company(BuilderJob):
 
         mapping = SPGTypeMapping(
             spg_type_name={{namespace}}.Company
-        ).add_field("id", {{namespace}}.Company.id) \
-        .add_field("name", {{namespace}}.Company.name) \
-        .add_field("address", {{namespace}}.Company.address)
+        ).add_mapping_field("id", {{namespace}}.Company.id) \
+        .add_mapping_field("name", {{namespace}}.Company.name) \
+        .add_mapping_field("address", {{namespace}}.Company.address)
 
         sink = KGWriter()
 

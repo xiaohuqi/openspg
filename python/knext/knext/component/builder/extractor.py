@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2023 Ant Group CO., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -18,25 +19,29 @@ from knext.component.builder.base import SPGExtractor
 from knext.operator.spg_record import SPGRecord
 from knext import rest
 from knext.operator.op import PromptOp, ExtractOp
-
-try:
-    from nn4k.invoker.base import NNInvoker  # noqa: F403
-except ImportError:
-    pass
+from nn4k.invoker import LLMInvoker
 
 
 class LLMBasedExtractor(SPGExtractor):
-    """A Process Component that transforming unstructured data into structured data.
+    """A Builder Component that extracting structured data from long texts by invoking large language model.
 
     Examples:
-        extract = UserDefinedExtractor(
-                    output_fields=["id", 'riskMark', 'useCert']
-                ).set_operator("DemoExtractOp")
+        prompt_op = REPrompt(
+                    spg_type_name=Medical.Disease,
+                    property_names=[
+                        Medical.Disease.complication,
+                        Medical.Disease.commonSymptom,
+                    ]
+                )
+        extract = LLMBasedExtractor(
+                    llm=LLMInvoker.from_config("./config.json"),
+                    prompt_ops=[prompt_op]
+                )
 
     """
 
     """Knowledge extract operator of this component."""
-    llm: NNInvoker
+    llm: LLMInvoker
     """PromptOps."""
     prompt_ops: List[PromptOp]
 
@@ -46,15 +51,7 @@ class LLMBasedExtractor(SPGExtractor):
 
     @property
     def output_types(self) -> Output:
-        return Union[Dict[str, str], SPGRecord]
-
-    @property
-    def input_keys(self):
-        return None
-
-    @property
-    def output_keys(self):
-        return self.output_fields
+        return SPGRecord
 
     def invoke(self, input: Input) -> Sequence[Output]:
         raise NotImplementedError(
@@ -86,7 +83,7 @@ class LLMBasedExtractor(SPGExtractor):
 
 
 class UserDefinedExtractor(SPGExtractor):
-    """A Process Component that transforming unstructured data into structured data.
+    """A Process Component that transforming unstructured data into structured data by extract operator.
 
     Examples:
         extract = UserDefinedExtractor(
@@ -104,7 +101,7 @@ class UserDefinedExtractor(SPGExtractor):
 
     @property
     def output_types(self) -> Output:
-        return Union[Dict[str, str], SPGRecord]
+        return Dict[str, str]
 
     def invoke(self, input: Input) -> Sequence[Output]:
         raise NotImplementedError(

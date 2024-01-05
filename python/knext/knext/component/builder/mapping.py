@@ -10,12 +10,20 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 from enum import Enum
-from typing import Union, Dict, List, Tuple, Sequence, Optional
+from typing import Union, Dict, List, Tuple, Sequence, Optional, Any
 
 from knext import rest
+from knext.client.model.base import BaseSpgType
+from knext.client.schema import SchemaClient
 from knext.common.runnable import Input, Output
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import (
+    SPGTypeName,
+    PropertyName,
+    RelationName,
+    TripletName,
+    SubPropertyName,
+)
 from knext.component.builder.base import Mapping
 from knext.operator.op import LinkOp, FuseOp, PredictOp
 from knext.operator.spg_record import SPGRecord
@@ -26,15 +34,46 @@ class LinkingStrategyEnum(str, Enum):
 
 
 class FusingStrategyEnum(str, Enum):
-    pass
+    NotImport = "NOT_IMPORT"
 
 
 class PredictingStrategyEnum(str, Enum):
     pass
 
 
+class MappingTypeEnum(str, Enum):
+    Property = "PROPERTY"
+    Relation = "RELATION"
+    SubProperty = "SUB_PROPERTY"
+    SubRelation = "SUB_RELATION"
+
+
+FusingStrategy = Union[FusingStrategyEnum, FuseOp]
+LinkingStrategy = Union[LinkingStrategyEnum, LinkOp]
+PredictingStrategy = Union[PredictingStrategyEnum, PredictOp]
+
+
 class SPGTypeMapping(Mapping):
-    """A Process Component that mapping data to entity/event/concept/standard type.
+    """A Builder Component that mapping source field[UnresolvedRecord with column names and values]
+    to target field[SPGRecord with entity/event/concept/standard type and properties].
+
+    The UnresolvedRecord will go through the following execution processes and be converted into SPGRecord:
+    1. Field Mapping
+        Map the source field data to the schema attribute field of the target type.
+    2. Object Linking
+        Traverse all mapped properties.
+        If the object type of property is not `BasicType`, execute the default `IDEqual` linking strategy:
+            Query with the property value as the `id` of the object SPGType instance.
+            If a corresponding SPGType instance exists, establish an SPO relationship between subject and object.
+
+        If a LinkOp is bound to the object type, the chain pointing process of generating objects based on attribute values is executed.
+        Based on the property values, link to
+        Establish an SPO relationship between the current subject type and the attribute type based on the attribute values.
+
+    3. Predicate Predicting
+        For the linked properties
+    4. Subject Fusing
+
 
     Args:
         spg_type_name: The SPG type name of subject import from SPGTypeHelper.
@@ -47,57 +86,173 @@ class SPGTypeMapping(Mapping):
             .add_predicting_field(DEFAULT.App.useCert)
     """
 
-    """The SPG type name of subject import from SPGTypeHelper."""
-    spg_type_name: Union[str, SPGTypeHelper]
+    """The target subject type name of this mapping component."""
+    spg_type_name: SPGTypeName
 
-    mapping: Dict[str, str] = dict()
+    fusing_strategy: FusingStrategy = None
 
-    filters: List[Tuple[str, str]] = list()
-
-    subject_fusing_strategy: Optional[Union[FusingStrategyEnum, FuseOp]] = None
-
-    object_linking_strategies: Dict[str, Union[LinkingStrategyEnum, LinkOp]] = dict()
-
-    predicate_predicting_strategies: Dict[
-        str, Union[PredictingStrategyEnum, PredictOp]
+    _property_mapping: Dict[TripletName, Optional[str]] = dict()
+    _relation_mapping: Dict[TripletName, Optional[str]] = dict()
+    _sub_property_mapping: Dict[
+        Tuple[TripletName, MappingTypeEnum], Dict[str, str]
     ] = dict()
+
+    _filters: List[Tuple[str, str]] = list()
+
+    _object_linking_strategies: Dict[TripletName, LinkingStrategy] = dict()
+
+    _predicate_predicting_strategies: Dict[TripletName, PredictingStrategy] = dict()
+
+    _current: Tuple[TripletName, MappingTypeEnum] = None
+
+    schema_session: SchemaClient.SchemaSession = None
+
+    spg_type: BaseSpgType = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.schema_session:
+            self.schema_session = SchemaClient().create_session()
+        if not self.spg_type:
+            self.spg_type = self.schema_session.get(self.spg_type_name)
 
     @property
     def input_types(self) -> Input:
-        return Dict[str, str]
+        return Union[Dict[str, str], SPGRecord]
 
     @property
     def output_types(self) -> Output:
         return SPGRecord
 
-    def set_fusing_strategy(self, fusing_strategy: FuseOp):
-        """"""
-        self.subject_fusing_strategy = fusing_strategy
+    @property
+    def dependencies(self):
+        dependencies = []
+        for triplet_name in {**self._property_mapping, **self._relation_mapping}.keys():
+            dependencies.append(triplet_name[2])
+        return dependencies
+
+    def add_property_mapping(
+        self,
+        source_name: str,
+        target_name: PropertyName,
+        target_type: SPGTypeName = None,
+        linking_strategy: LinkingStrategy = None,
+    ):
+        if target_name not in self.spg_type.properties:
+            raise ValueError(
+                f"Property [{target_name}] does not exist in [{self.spg_type_name}]."
+            )
+        object_type_name = self.spg_type.properties[target_name].object_type_name
+        if target_type:
+            assert target_type == object_type_name, (
+                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given."
+                f"Please check your schema config."
+            )
+        triplet_name = (self.spg_type_name, target_name, object_type_name)
+
+        if linking_strategy:
+            pass
+        elif object_type_name in LinkOp.bind_schemas:
+            op_name = LinkOp.bind_schemas[object_type_name]
+            linking_strategy = LinkOp.by_name(op_name)()
+        else:
+            linking_strategy = None
+        self._property_mapping[triplet_name] = source_name
+        self._object_linking_strategies[triplet_name] = linking_strategy
+
+        if not self._current:
+            self._current = (triplet_name, MappingTypeEnum.SubProperty)
         return self
 
-    def add_mapping_field(
+    def add_relation_mapping(
         self,
-        source_field: str,
-        target_field: Union[str, PropertyHelper],
-        linking_strategy: Union[LinkingStrategyEnum, LinkOp] = None,
+        source_name: str,
+        target_name: PropertyName,
+        target_type: SPGTypeName,
+        linking_strategy: LinkingStrategy = None,
     ):
-        """Adds a field mapping from source data to property of spg_type.
+        relation_name = target_name + "_" + target_type
+        if relation_name not in self.spg_type.relations:
+            raise ValueError(
+                f"Relation [{relation_name}] with ObjectType [target_type]"
+                f" does not exist in [{self.spg_type_name}]."
+            )
+        triplet_name = (self.spg_type_name, target_name, target_type)
+        if linking_strategy:
+            pass
+        elif target_type in LinkOp.bind_schemas:
+            op_name = LinkOp.bind_schemas[target_type]
+            linking_strategy = LinkOp.by_name(op_name)()
+        else:
+            linking_strategy = None
+        self._relation_mapping[triplet_name] = source_name
+        self._object_linking_strategies[triplet_name] = linking_strategy
 
-        :param source_field: The source field to be mapped.
-        :param target_field: The target field (SPG property name) to map the source field to.
-        :param linking_strategy: The target field to map the source field to.
-        :return: self
-        """
-        self.mapping[target_field] = source_field
-        self.object_linking_strategies[target_field] = linking_strategy
+        if not self._current:
+            self._current = (triplet_name, MappingTypeEnum.SubRelation)
         return self
 
-    def add_predicting_field(
+    def add_predicting_property(
         self,
-        field: Union[str, PropertyHelper],
-        predicting_strategy: PredictOp = None,
+        target_name: PropertyName,
+        target_type: SPGTypeName = None,
+        predicting_strategy: PredictingStrategy = None,
     ):
-        self.predicate_predicting_strategies[field] = predicting_strategy
+        if target_name not in self.spg_type.properties:
+            raise ValueError(
+                f"Property [{target_name}] does not exist in [{self.spg_type_name}]."
+            )
+        object_type_name = self.spg_type.properties[target_name].object_type_name
+        if target_type:
+            assert target_type == object_type_name, (
+                f"The SPGType of Property [{target_name}] is [{object_type_name}], but [{target_type}] is given."
+                f"Please check your schema config."
+            )
+        triplet_name = (self.spg_type_name, target_name, object_type_name)
+        if predicting_strategy:
+            pass
+        elif triplet_name in PredictOp.bind_schemas:
+            op_name = PredictOp.bind_schemas[triplet_name]
+            predicting_strategy = PredictOp.by_name(op_name)()
+        else:
+            predicting_strategy = None
+        self._property_mapping[triplet_name] = None
+        self._predicate_predicting_strategies[triplet_name] = predicting_strategy
+
+        return self
+
+    def add_predicting_relation(
+        self,
+        target_name: RelationName,
+        target_type: SPGTypeName,
+        predicting_strategy: PredictingStrategy = None,
+    ):
+        relation_name = target_name + "_" + target_type
+        if relation_name not in self.spg_type.relations:
+            raise ValueError(
+                f"Relation [{relation_name}] with ObjectType [target_type]"
+                f" does not exist in [{self.spg_type_name}]."
+            )
+        triplet_name = (self.spg_type_name, target_name, target_type)
+
+        if predicting_strategy:
+            pass
+        elif triplet_name in PredictOp.bind_schemas:
+            op_name = PredictOp.bind_schemas[triplet_name]
+            predicting_strategy = PredictOp.by_name(op_name)()
+        else:
+            predicting_strategy = None
+        self._relation_mapping[triplet_name] = None
+        self._predicate_predicting_strategies[triplet_name] = predicting_strategy
+        return self
+
+    def add_sub_property_mapping(self, source_name: str, target_name: SubPropertyName):
+        if not self._current:
+            raise ValueError(
+                "Please add property or relation mapping before adding sub_property mapping."
+            )
+        sub_property_mapping = self._sub_property_mapping.get(self._current, {})
+        sub_property_mapping.update({target_name: source_name})
+        self._sub_property_mapping.update({self._current: sub_property_mapping})
         return self
 
     def add_filter(self, column_name: str, column_value: str):
@@ -108,83 +263,103 @@ class SPGTypeMapping(Mapping):
         :param column_value: The column value to be filtered.
         :return: self
         """
-        self.filters.append((column_name, column_value))
+        self._filters.append((column_name, column_value))
         return self
 
     def to_rest(self):
         """
         Transforms `SPGTypeMapping` to REST model `SpgTypeMappingNodeConfig`.
         """
-        from knext.client.schema import SchemaClient
-
-        client = SchemaClient()
-        spg_type = client.query_spg_type(self.spg_type_name)
 
         mapping_filters = [
             rest.MappingFilter(column_name=name, column_value=value)
-            for name, value in self.filters
+            for name, value in self._filters
         ]
         mapping_configs = []
-        for tgt_name, src_name in self.mapping.items():
-            linking_strategy = self.object_linking_strategies.get(tgt_name, None)
-            if isinstance(linking_strategy, LinkOp):
-                strategy_config = rest.OperatorLinkingConfig(
-                    operator_config=linking_strategy.to_rest()
+        for triplet_name, src_name in self._property_mapping.items():
+            if src_name:
+                linking_strategy = self._object_linking_strategies.get(
+                    triplet_name, None
                 )
-            elif linking_strategy == LinkingStrategyEnum.IDEquals:
-                strategy_config = rest.IdEqualsLinkingConfig()
-            elif not linking_strategy:
-                object_type_name = spg_type.properties[tgt_name].object_type_name
-                if object_type_name in LinkOp.bind_schemas:
-                    op_name = LinkOp.bind_schemas[object_type_name]
-                    op = LinkOp.by_name(op_name)()
+                if isinstance(linking_strategy, LinkOp):
                     strategy_config = rest.OperatorLinkingConfig(
-                        operator_config=op.to_rest()
+                        operator_config=linking_strategy.to_rest()
                     )
-                else:
+                elif linking_strategy == LinkingStrategyEnum.IDEquals:
+                    strategy_config = rest.IdEqualsLinkingConfig()
+                elif not linking_strategy:
                     strategy_config = None
+                else:
+                    raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
+                predicting_strategy = self._predicate_predicting_strategies.get(
+                    triplet_name, None
+                )
+                if isinstance(predicting_strategy, PredictOp):
+                    strategy_config = rest.OperatorPredictingConfig(
+                        operator_config=predicting_strategy.to_rest()
+                    )
+                elif not predicting_strategy:
+                    strategy_config = None
+                else:
+                    raise ValueError(
+                        f"Invalid predicting_strategy [{predicting_strategy}]."
+                    )
             mapping_configs.append(
                 rest.MappingConfig(
                     source=src_name,
-                    target=tgt_name,
+                    target=triplet_name[1],
                     strategy_config=strategy_config,
+                    mapping_type=MappingTypeEnum.Property,
                 )
             )
 
-        predicting_configs = []
-        for (
-            predicate_name,
-            predicting_strategy,
-        ) in self.predicate_predicting_strategies.items():
-            if isinstance(predicting_strategy, PredictOp):
-                strategy_config = rest.OperatorPredictingConfig(
-                    operator_config=predicting_strategy.to_rest()
+        for triplet_name, src_name in self._relation_mapping.items():
+            if src_name:
+                linking_strategy = self._object_linking_strategies.get(
+                    triplet_name, None
                 )
-            elif not predicting_strategy:
-                if (self.spg_type_name, predicate_name) in PredictOp.bind_schemas:
-                    op_name = PredictOp.bind_schemas[
-                        (self.spg_type_name, predicate_name)
-                    ]
-                    op = PredictOp.by_name(op_name)()
-                    strategy_config = rest.OperatorPredictingConfig(
-                        operator_config=op.to_rest()
+                if isinstance(linking_strategy, LinkOp):
+                    strategy_config = rest.OperatorLinkingConfig(
+                        operator_config=linking_strategy.to_rest()
                     )
-                else:
+                elif linking_strategy == LinkingStrategyEnum.IDEquals:
+                    strategy_config = rest.IdEqualsLinkingConfig()
+                elif not linking_strategy:
                     strategy_config = None
+                else:
+                    raise ValueError(f"Invalid linking_strategy [{linking_strategy}].")
             else:
-                raise ValueError(
-                    f"Invalid predicting_strategy [{predicting_strategy}]."
+                predicting_strategy = self._predicate_predicting_strategies.get(
+                    triplet_name, None
                 )
-            if strategy_config:
-                predicting_configs.append(strategy_config)
+                if isinstance(predicting_strategy, PredictOp):
+                    strategy_config = rest.OperatorPredictingConfig(
+                        operator_config=predicting_strategy.to_rest()
+                    )
+                elif not predicting_strategy:
+                    strategy_config = None
+                else:
+                    raise ValueError(
+                        f"Invalid predicting_strategy [{predicting_strategy}]."
+                    )
 
-        if isinstance(self.subject_fusing_strategy, FuseOp):
+            mapping_configs.append(
+                rest.MappingConfig(
+                    source=src_name,
+                    target=triplet_name[1] + "#" + triplet_name[2],
+                    strategy_config=strategy_config,
+                    mapping_type=MappingTypeEnum.Relation,
+                )
+            )
+
+        if isinstance(self.fusing_strategy, FuseOp):
             fusing_config = rest.OperatorFusingConfig(
                 operator_config=self.fusing_strategy.to_rest()
             )
-        elif not self.subject_fusing_strategy:
+        elif self.fusing_strategy == FusingStrategyEnum.NotImport:
+            fusing_config = rest.NotImportFusingConfig()
+        elif not self.fusing_strategy:
             if self.spg_type_name in FuseOp.bind_schemas:
                 op_name = FuseOp.bind_schemas[self.spg_type_name]
                 op = FuseOp.by_name(op_name)()
@@ -196,12 +371,25 @@ class SPGTypeMapping(Mapping):
                 f"Invalid fusing_strategy [{self.subject_fusing_strategy}]."
             )
 
+        for (
+            triplet_name,
+            mapping_type,
+        ), sub_mapping in self._sub_property_mapping.items():
+            for tgt_name, src_name in sub_mapping.items():
+                mapping_configs.append(
+                    rest.MappingConfig(
+                        source=src_name,
+                        target=triplet_name[1] + "#" + triplet_name[2] + "#" + tgt_name,
+                        strategy_config=None,
+                        mapping_type=mapping_type,
+                    )
+                )
+
         config = rest.SpgTypeMappingNodeConfig(
             spg_type=self.spg_type_name,
             mapping_filters=mapping_filters,
             mapping_configs=mapping_configs,
             subject_fusing_config=fusing_config,
-            predicting_configs=predicting_configs,
         )
         return rest.Node(**super().to_dict(), node_config=config)
 
@@ -211,13 +399,15 @@ class SPGTypeMapping(Mapping):
         )
 
     @classmethod
-    def from_rest(cls, node: rest.Node):
+    def from_rest(cls, rest_model):
         raise NotImplementedError(
-            f"`invoke` method is not currently supported for {cls.__name__}."
+            f"`from_rest` method is not currently supported for {cls.__name__}."
         )
 
     def submit(self):
-        pass
+        raise NotImplementedError(
+            f"`submit` method is not currently supported for {self.__class__.__name__}."
+        )
 
 
 class RelationMapping(Mapping):
@@ -238,22 +428,22 @@ class RelationMapping(Mapping):
     """
 
     """The SPG type names of (subject, predicate, object) triplet imported from SPGTypeHelper and PropertyHelper."""
-    subject_name: Union[str, SPGTypeHelper]
-    predicate_name: Union[str, PropertyHelper]
-    object_name: Union[str, SPGTypeHelper]
+    subject_name: SPGTypeName
+    predicate_name: RelationName
+    object_name: SPGTypeName
 
-    mapping: Dict[str, str] = dict()
+    _mapping: Dict[str, str] = dict()
 
-    filters: List[Tuple[str, str]] = list()
+    _filters: List[Tuple[str, str]] = list()
 
-    def add_mapping_field(self, source_field: str, target_field: str):
+    def add_sub_property_mapping(self, source_name: str, target_name: str):
         """Adds a field mapping from source data to property of spg_type.
 
-        :param source_field: The source field to be mapped.
-        :param target_field: The target field to map the source field to.
+        :param source_name: The source field to be mapped.
+        :param target_name: The target field to map the source field to.
         :return: self
         """
-        self.mapping[target_field] = source_field
+        self._mapping[target_name] = source_name
         return self
 
     def add_filter(self, column_name: str, column_value: str):
@@ -264,7 +454,7 @@ class RelationMapping(Mapping):
         :param column_value: The column value to be filtered.
         :return: self
         """
-        self.filters.append((column_name, column_value))
+        self._filters.append((column_name, column_value))
         return self
 
     def to_rest(self):
@@ -272,11 +462,11 @@ class RelationMapping(Mapping):
 
         mapping_filters = [
             rest.MappingFilter(column_name=name, column_value=value)
-            for name, value in self.filters
+            for name, value in self._filters
         ]
         mapping_configs = [
             rest.MappingConfig(source=src_name, target=tgt_name)
-            for tgt_name, src_name in self.mapping.items()
+            for tgt_name, src_name in self._mapping.items()
         ]
 
         config = rest.RelationMappingNodeConfig(
@@ -297,188 +487,10 @@ class RelationMapping(Mapping):
         pass
 
 
-class SubGraphMapping(Mapping):
-    """A Process Component that mapping data to relation type.
+class _SPGTypeMappings(Mapping):
 
-    Args:
-        spg_type_name: The SPG type name import from SPGTypeHelper.
-    Examples:
-        mapping = SubGraphMapping(
-                    spg_type_name=DEFAULT.App,
-                ).add_mapping_field("id", DEFAULT.App.id) \
-                 .add_mapping_field("name", DEFAULT.App.name) \
-                 .add_mapping_field("useCert", DEFAULT.App.useCert)
-                 .add_predicting_field(
-
-    """
-
-    """"""
-    spg_type_name: Union[str, SPGTypeHelper]
-
-    mapping: Dict[str, str] = dict()
-
-    filters: List[Tuple[str, str]] = list()
-
-    subject_fusing_strategy: Optional[FuseOp] = None
-
-    predicate_predicting_strategies: Dict[str, PredictOp] = dict()
-
-    object_fuse_strategies: Dict[str, FuseOp] = dict()
-
-    @property
-    def input_types(self) -> Input:
-        return Union[Dict[str, str], SPGRecord]
-
-    @property
-    def output_types(self) -> Output:
-        return SPGRecord
-
-    def set_fusing_strategy(self, fusing_strategy: FuseOp):
-        self.subject_fusing_strategy = fusing_strategy
-        return self
-
-    def add_mapping_field(
-        self,
-        source_field: str,
-        target_field: Union[str, PropertyHelper],
-        fusing_strategy: Union[FusingStrategyEnum, FuseOp] = None,
-    ):
-        """Adds a field mapping from source data to property of spg_type.
-
-        :param source_field: The source field to be mapped.
-        :param target_field: The target field to map the source field to.
-        :return: self
-        """
-        self.mapping[target_field] = source_field
-        self.object_fuse_strategies[target_field] = fusing_strategy
-        return self
-
-    def add_predicting_field(
-        self,
-        target_field: Union[str, PropertyHelper],
-        predicting_strategy: PredictOp = None,
-    ):
-        self.predicate_predicting_strategies[target_field] = predicting_strategy
-        return self
-
-    def add_filter(self, column_name: str, column_value: str):
-        """Adds data filtering rule.
-        Only the column that meets `column_name=column_value` will execute the mapping.
-
-        :param column_name: The column name to be filtered.
-        :param column_value: The column value to be filtered.
-        :return: self
-        """
-        self.filters.append((column_name, column_value))
-        return self
+    spg_type_mappings: List[SPGTypeMapping]
 
     def to_rest(self):
-        """
-        Transforms `SubGraphMapping` to REST model `SpgTypeMappingNodeConfig`.
-        """
-        from knext.client.schema import SchemaClient
-
-        client = SchemaClient()
-        spg_type = client.query_spg_type(self.spg_type_name)
-
-        mapping_filters = [
-            rest.MappingFilter(column_name=name, column_value=value)
-            for name, value in self.filters
-        ]
-        mapping_configs = []
-        for tgt_name, src_name in self.mapping.items():
-            fusing_strategy = self.object_fuse_strategies.get(tgt_name, None)
-            if isinstance(fusing_strategy, FuseOp):
-                strategy_config = rest.OperatorFusingConfig(
-                    operator_config=fusing_strategy.to_rest()
-                )
-            elif not self.subject_fusing_strategy:
-                object_type_name = spg_type.properties[tgt_name].object_type_name
-                if object_type_name in FuseOp.bind_schemas:
-                    op_name = FuseOp.bind_schemas[object_type_name]
-                    op = FuseOp.by_name(op_name)()
-                    strategy_config = rest.OperatorFusingConfig(
-                        operator_config=op.to_rest()
-                    )
-                else:
-                    strategy_config = rest.NewInstanceFusingConfig()
-            else:
-                raise ValueError(f"Invalid fusing_strategy [{fusing_strategy}].")
-            mapping_configs.append(
-                rest.MappingConfig(
-                    source=src_name,
-                    target=tgt_name,
-                    strategy_config=strategy_config,
-                )
-            )
-
-        predicting_configs = []
-        for (
-            predicate_name,
-            predicting_strategy,
-        ) in self.predicate_predicting_strategies.items():
-            if isinstance(predicting_strategy, PredictOp):
-                strategy_config = rest.OperatorPredictingConfig(
-                    operator_config=predicting_strategy.to_rest()
-                )
-            elif not predicting_strategy:
-                object_type_name = spg_type.properties[predicate_name].object_type_name
-                if (
-                    self.spg_type_name,
-                    predicate_name,
-                    object_type_name,
-                ) in PredictOp.bind_schemas:
-                    op_name = PredictOp.bind_schemas[
-                        (self.spg_type_name, predicate_name, object_type_name)
-                    ]
-                    op = PredictOp.by_name(op_name)()
-                    strategy_config = rest.OperatorPredictingConfig(
-                        operator_config=op.to_rest()
-                    )
-                else:
-                    strategy_config = None
-            else:
-                raise ValueError(
-                    f"Invalid predicting_strategy [{predicting_strategy}]."
-                )
-            if strategy_config:
-                predicting_configs.append(
-                    rest.PredictingConfig(
-                        target=predicate_name, predicting_config=strategy_config
-                    )
-                )
-
-        if isinstance(self.subject_fusing_strategy, FuseOp):
-            fusing_config = rest.OperatorFusingConfig(
-                operator_config=self.fusing_strategy.to_rest()
-            )
-        elif not self.subject_fusing_strategy:
-            if self.spg_type_name in FuseOp.bind_schemas:
-                op_name = FuseOp.bind_schemas[self.spg_type_name]
-                op = FuseOp.by_name(op_name)()
-                fusing_config = rest.OperatorFusingConfig(operator_config=op.to_rest())
-            else:
-                fusing_config = rest.NewInstanceFusingConfig()
-        else:
-            raise ValueError(
-                f"Invalid fusing_strategy [{self.subject_fusing_strategy}]."
-            )
-
-        config = rest.SubGraphMappingNodeConfig(
-            spg_type=self.spg_type_name,
-            mapping_filters=mapping_filters,
-            mapping_configs=mapping_configs,
-            subject_fusing_config=fusing_config,
-            predicting_configs=predicting_configs,
-        )
+        config = Mapping.sort_by_dependency(self.spg_type_mappings)
         return rest.Node(**super().to_dict(), node_config=config)
-
-    @classmethod
-    def from_rest(cls, node: rest.Node):
-        pass
-
-    def invoke(self, input: Input) -> Sequence[Output]:
-        pass
-
-    def submit(self):
-        pass

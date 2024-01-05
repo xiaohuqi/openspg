@@ -530,7 +530,10 @@ class SPGSchemaMarkLang:
         cur_type = self.parsing_register[RegisterUnit.Type]
         type_name = cur_type.name
 
-        if cur_type.spg_type_enum == SpgTypeEnum.Concept and self.parsing_register[RegisterUnit.Relation] is None:
+        if (
+            cur_type.spg_type_enum == SpgTypeEnum.Concept
+            and self.parsing_register[RegisterUnit.Relation] is None
+        ):
             assert "#" in predicate_name, self.error_msg(
                 "Concept type only accept following categories of relation: INC#/CAU#/SYNANT#/IND#/USE#/SEQ#"
             )

@@ -17,6 +17,25 @@ from typing import Type
 import inspect
 
 
+def _register(root, path, files, class_type):
+    relative_path = os.path.relpath(path, root)
+    module_prefix = relative_path.replace(".", "").replace("/", ".")
+    module_prefix = module_prefix + "." if module_prefix else ""
+    for file_name in files:
+        if file_name.endswith(".py"):
+            module_name = os.path.splitext(file_name)[0]
+            module = __import__(module_prefix + module_name)
+            classes = inspect.getmembers(module, inspect.isclass)
+            for class_name, class_obj in classes:
+                if (
+                    issubclass(class_obj, class_type)
+                    and inspect.getmodule(class_obj) == module
+                ):
+                    class_type.register(
+                        name=class_name, local_path=os.path.join(root, file_name)
+                    )(class_obj)
+
+
 def register_from_package(path: str, class_type: Type) -> None:
     """
     Register all classes under the given package.
@@ -25,19 +44,7 @@ def register_from_package(path: str, class_type: Type) -> None:
     if not append_python_path(path):
         return
     for root, dirs, files in os.walk(path):
-        for file_name in files:
-            if file_name.endswith(".py"):
-                module_name = os.path.splitext(file_name)[0]
-                module = __import__(module_name)
-                classes = inspect.getmembers(module, inspect.isclass)
-                for class_name, class_obj in classes:
-                    if (
-                        issubclass(class_obj, class_type)
-                        and inspect.getmodule(class_obj) == module
-                    ):
-                        class_type.register(
-                            name=class_name, local_path=os.path.join(root, file_name)
-                        )(class_obj)
+        _register(path, root, files, class_type)
     class_type._has_registered = True
 
 
@@ -45,7 +52,6 @@ def append_python_path(path: str) -> bool:
     """
     Append the given path to `sys.path`.
     """
-    # In some environments, such as TC, it fails when sys.path contains a relative path, such as ".".
     path = Path(path).resolve()
     path = str(path)
     if path not in sys.path:

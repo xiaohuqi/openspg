@@ -21,18 +21,24 @@ Output = TypeVar("Output", covariant=True)
 
 
 class Runnable(BaseModel):
+    """
+    Abstract base class that can be invoked synchronously.
+    """
 
     _last: bool = False
 
     @property
     def input_types(self) -> Type[Input]:
+        """The type of input this Runnable object accepts specified as a type annotation."""
         return
 
     @property
     def output_types(self) -> Type[Output]:
+        """The type of output this Runnable object produces specified as a type annotation."""
         return
 
     def invoke(self, input: Input) -> Sequence[Output]:
+        """Transform an input into an output sequence synchronously."""
         raise NotImplementedError(
             f"`invoke` is not currently supported for {self.__class__.__name__}."
         )
