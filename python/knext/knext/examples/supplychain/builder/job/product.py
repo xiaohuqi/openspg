@@ -32,7 +32,9 @@ class Product(BuilderJob):
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.Product)
             .add_property_mapping("fullname", SupplyChain.Product.id)
-            .add_property_mapping("belongToIndustry", SupplyChain.Product.belongToIndustry)
+            .add_property_mapping(
+                "belongToIndustry", SupplyChain.Product.belongToIndustry
+            )
         )
 
         sink = KGWriter()

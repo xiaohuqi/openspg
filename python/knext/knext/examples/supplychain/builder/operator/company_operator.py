@@ -30,7 +30,7 @@ def llm_infer(word, recall):
     if llm_response.status_code == 200:
         content = llm_response.content
         if content.startswith("输出结果:"):
-            return content[content.index(":") + 1:].strip().rstrip("。")
+            return content[content.index(":") + 1 :].strip().rstrip("。")
     else:
         return "null"
 
@@ -58,13 +58,17 @@ class CompanyLinkerOperator(LinkOp):
         if company_name == recalls[0].properties["name"]:
             # If the result of Top1 is the same as the attribute value, then returned directly
             return [
-                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties({"id": recalls[0].doc_id})
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recalls[0].doc_id}
+                )
             ]
 
             # Perform fine-ranking on coarse recall results by calling LLM
         if not self.enable_llm:
             return [
-                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties({"id": recalls[0].doc_id})
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recalls[0].doc_id}
+                )
             ]
         recall_dict = {}
         for item in recalls:
@@ -75,6 +79,8 @@ class CompanyLinkerOperator(LinkOp):
         llm_result = llm_infer(company_name, recall_str)
         if len(llm_result) > 0 and llm_result != "null":
             return [
-                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties({"id": recall_dict[llm_result]}),
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recall_dict[llm_result]}
+                ),
             ]
         return []
