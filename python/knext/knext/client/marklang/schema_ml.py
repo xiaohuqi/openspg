@@ -348,15 +348,17 @@ class SPGSchemaMarkLang:
             self.parsing_register[RegisterUnit.Type].desc = meta_value
 
         elif type_meta == "properties":
-            # assert (
-            #     self.parsing_register[RegisterUnit.Type].spg_type_enum
-            #     != SpgTypeEnum.Concept
-            # ), self.error_msg("Concept type does not allow defining properties.")
+            assert self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+                SpgTypeEnum.Standard
+            ], self.error_msg("Standard type does not allow defining properties.")
             self.save_register(
                 RegisterUnit.Property, Property(name="_", object_type_name="Thing")
             )
 
         elif type_meta == "relations":
+            assert self.parsing_register[RegisterUnit.Type].spg_type_enum not in [
+                SpgTypeEnum.Standard
+            ], self.error_msg("Standard type does not allow defining relations.")
             self.save_register(
                 RegisterUnit.Relation, Relation(name="_", object_type_name="Thing")
             )
@@ -374,7 +376,7 @@ class SPGSchemaMarkLang:
                 self.parsing_register[
                     RegisterUnit.Type
                 ].hypernym_predicate = HypernymPredicateEnum.IsA
-            elif meta_value == "isA":
+            elif meta_value == "locateAt":
                 self.parsing_register[
                     RegisterUnit.Type
                 ].hypernym_predicate = HypernymPredicateEnum.LocateAt
@@ -457,20 +459,24 @@ class SPGSchemaMarkLang:
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define synonym/antonym relation"
             )
-            assert subject_type.name == predicate_class_ns, self.error_msg(
-                "Synonymy/antonym relation should be self-referential"
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "Synonymy/antonym relation can only point to concept types"
             )
         elif short_name == "CAU":
             assert subject_type.spg_type_enum in [
                 SpgTypeEnum.Concept,
                 SpgTypeEnum.Event,
-            ], self.error_msg("Only concept types could define causal relation")
+            ], self.error_msg("Only concept/event types could define causal relation")
             assert object_type.spg_type_enum in [
                 SpgTypeEnum.Concept,
                 SpgTypeEnum.Event,
             ], self.error_msg(
                 f'"{predicate_class}" must be a concept type to conform to the definition of causal relation'
             )
+            if subject_type.spg_type_enum == SpgTypeEnum.Concept:
+                assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                    "The causal relation of concept types can only point to concept types"
+                )
         elif short_name == "SEQ":
             assert subject_type.spg_type_enum in [
                 SpgTypeEnum.Event,
@@ -495,9 +501,15 @@ class SPGSchemaMarkLang:
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define inclusive relation"
             )
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "The inclusion relation of concept types can only point to concept types"
+            )
         elif short_name == "USE":
             assert subject_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
                 "Only concept types could define usage relation"
+            )
+            assert object_type.spg_type_enum == SpgTypeEnum.Concept, self.error_msg(
+                "The usage relation of concept types can only point to concept types"
             )
 
     def parse_predicate(self, expression):
@@ -518,7 +530,7 @@ class SPGSchemaMarkLang:
         cur_type = self.parsing_register[RegisterUnit.Type]
         type_name = cur_type.name
 
-        if cur_type.spg_type_enum == SpgTypeEnum.Concept:
+        if cur_type.spg_type_enum == SpgTypeEnum.Concept and self.parsing_register[RegisterUnit.Relation] is None:
             assert "#" in predicate_name, self.error_msg(
                 "Concept type only accept following categories of relation: INC#/CAU#/SYNANT#/IND#/USE#/SEQ#"
             )
@@ -656,6 +668,9 @@ class SPGSchemaMarkLang:
 
         else:
             # predicate is relation
+            assert not predicate_class.startswith("STD."), self.error_msg(
+                f"{predicate_class} is not allow appear in the definition of relation."
+            )
             assert predicate_class in self.types, self.error_msg(
                 f"{predicate_class} is illegal, please ensure that it appears in this schema."
             )
@@ -996,7 +1011,8 @@ class SPGSchemaMarkLang:
 
         # generate the delete list of spg type
         for spg_type in session.spg_types:
-            if spg_type in self.internal_type:
+            unique_id = session.spg_types[spg_type]._rest_model.ontology_id.unique_id
+            if spg_type in self.internal_type and unique_id < 1000:
                 continue
 
             if spg_type not in self.types:
@@ -1055,6 +1071,7 @@ class SPGSchemaMarkLang:
                         need_update = True
                         print(f"Update standard type constraint: {spg_type}")
 
+                inherited_type = self.get_inherited_type(new_type.name)
                 for prop in old_type.properties:
                     if (
                         not old_type.properties[prop].inherited
@@ -1068,6 +1085,9 @@ class SPGSchemaMarkLang:
                         ), self.error_msg(
                             "The subject property of event type cannot be deleted"
                         )
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit property alteration!'
+                        )
 
                         old_type.properties[
                             prop
@@ -1076,7 +1096,6 @@ class SPGSchemaMarkLang:
                         print(f"Delete property: [{new_type.name}] {prop}")
 
                 for prop, o in new_type.properties.items():
-                    inherited_type = self.get_inherited_type(new_type.name)
 
                     if (
                         prop not in old_type.properties
@@ -1147,6 +1166,9 @@ class SPGSchemaMarkLang:
                         or old_type.relations[relation].object_type_name
                         != new_type.relations[relation].object_type_name
                     ):
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         old_type.add_relation(new_type.relations[relation])
                         need_update = True
                         print(f"Create relation: [{new_type.name}] {p_name}")
@@ -1163,11 +1185,17 @@ class SPGSchemaMarkLang:
                             new_type.relations[relation],
                         )
                         if need_update:
+                            assert inherited_type is None, self.error_msg(
+                                f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                            )
                             old_type.relations[
                                 relation
                             ].alter_operation = AlterOperationEnum.Update
 
                     elif old_type.relations[relation] != new_type.relations[relation]:
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         assert not old_type.relations[
                             relation
                         ].inherited, self.error_msg(
@@ -1194,9 +1222,13 @@ class SPGSchemaMarkLang:
                         and not o.is_dynamic
                         and not (
                             new_type.spg_type_enum == SpgTypeEnum.Concept
-                            and p_name in ["isA", "locateAt"]
+                            and p_name
+                            in [member.value for member in HypernymPredicateEnum]
                         )
                     ):
+                        assert inherited_type is None, self.error_msg(
+                            f'"{new_type.name} was inherited by other type, such as "{inherited_type}". Prohibit relation alteration!'
+                        )
                         old_type.relations[
                             relation
                         ].alter_operation = AlterOperationEnum.Delete
@@ -1225,19 +1257,33 @@ class SPGSchemaMarkLang:
         for spg_type_name in sorted(session.spg_types):
             if spg_type_name.startswith("STD.") or spg_type_name in self.internal_type:
                 continue
+
+            properties = set()
+            for prop, prop_type in session.get(spg_type_name).properties.items():
+                properties.add(prop)
+                if len(prop_type.sub_properties) > 0:
+                    for sub_prop in prop_type.sub_properties:
+                        properties.add(f"{prop}.{sub_prop}")
+
             relations = set()
             hyp_predicate = [member.value for member in HypernymPredicateEnum]
-            for relation in session.get(spg_type_name).relations:
+            for relation, relation_type in session.get(spg_type_name).relations.items():
                 rel = relation.split("_")[0]
-                if rel in relations or rel in hyp_predicate or rel in session.get(spg_type_name).properties:
+                if (
+                    rel in relations
+                    or rel in hyp_predicate
+                    or rel in session.get(spg_type_name).properties
+                ):
                     continue
                 relations.add(rel)
+                if len(relation_type.sub_properties) > 0:
+                    for sub_prop in relation_type.sub_properties:
+                        properties.add(f"{rel}.{sub_prop}")
+
             spg_types.append(
                 {
                     "name": spg_type_name.split(".")[1],
-                    "properties": [
-                        prop for prop in session.get(spg_type_name).properties
-                    ],
+                    "properties": properties,
                     "relations": relations,
                 }
             )
