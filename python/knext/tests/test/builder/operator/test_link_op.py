@@ -27,14 +27,15 @@ class TestLinkOp(LinkOp):
 
         recall_record = SPGRecord(
             spg_type_name="TEST.Entity2",
+        )
+        recall_record.upsert_properties(
             properties={
-                "id": "TestEntity2",
-                "name": "TestEntity2",
-            }
+                "id": property,
+                "name": property,
+            },
         )
         print("TestLinkOp(Output): ")
         print("----------------------")
         print([recall_record])
 
         return [recall_record]
-

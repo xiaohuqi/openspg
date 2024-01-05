@@ -15,7 +15,7 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class RiskMining:
@@ -24,8 +24,8 @@ class RiskMining:
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         riskMark = PropertyHelper("riskMark")
-        useCert = PropertyHelper("useCert")
         belongTo = PropertyHelper("belongTo")
+        useCert = PropertyHelper("useCert")
 
     class Cert(SPGTypeHelper):
         description = PropertyHelper("description")
@@ -39,20 +39,30 @@ class RiskMining:
         name = PropertyHelper("name")
         hasPhone = PropertyHelper("hasPhone")
 
+        hasCert = RelationHelper("hasCert")
+        holdShare = RelationHelper("holdShare")
+
     class Device(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        install = PropertyHelper("install")
         umid = PropertyHelper("umid")
+        install = PropertyHelper("install")
 
     class Person(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        hasPhone = PropertyHelper("hasPhone")
         belongTo = PropertyHelper("belongTo")
+        hasPhone = PropertyHelper("hasPhone")
         age = PropertyHelper("age")
+
+        holdShare = RelationHelper("holdShare")
+        hasDevice = RelationHelper("hasDevice")
+        hasCert = RelationHelper("hasCert")
+        fundTrans = RelationHelper("fundTrans")
+        release = RelationHelper("release")
+        developed = RelationHelper("developed")
 
     class TaxOfRiskApp(SPGTypeHelper):
         description = PropertyHelper("description")
@@ -75,3 +85,5 @@ class RiskMining:
     Person = Person("RiskMining.Person")
     TaxOfRiskApp = TaxOfRiskApp("RiskMining.TaxOfRiskApp")
     TaxOfRiskUser = TaxOfRiskUser("RiskMining.TaxOfRiskUser")
+
+    pass

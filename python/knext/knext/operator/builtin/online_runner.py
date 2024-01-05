@@ -19,11 +19,6 @@ from nn4k.invoker import LLMInvoker
 
 class _BuiltInOnlineExtractor(ExtractOp):
     def __init__(self, params: Dict[str, str] = None):
-        """
-
-        Args:
-            params: {"model_name": "openai", "token": "**"}
-        """
         super().__init__(params)
         self.model = self.load_model()
         self.prompt_ops = self.load_operator()

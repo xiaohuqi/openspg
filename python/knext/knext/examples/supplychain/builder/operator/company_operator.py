@@ -14,8 +14,8 @@ from typing import List
 
 import requests
 
-from knext.api.record import SPGRecord
 from knext.api.operator import LinkOp
+from knext.api.record import SPGRecord
 from knext.client.search import SearchClient
 
 
@@ -58,18 +58,16 @@ class CompanyLinkerOperator(LinkOp):
         if company_name == recalls[0].properties["name"]:
             # If the result of Top1 is the same as the attribute value, then returned directly
             return [
-                SPGRecord(
-                    spg_type_name="SupplyChain.Company",
-                    properties={"id": recalls[0].doc_id},
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recalls[0].doc_id}
                 )
             ]
 
             # Perform fine-ranking on coarse recall results by calling LLM
         if not self.enable_llm:
             return [
-                SPGRecord(
-                    spg_type_name="SupplyChain.Company",
-                    properties={"id": recalls[0].doc_id},
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recalls[0].doc_id}
                 )
             ]
         recall_dict = {}
@@ -81,9 +79,8 @@ class CompanyLinkerOperator(LinkOp):
         llm_result = llm_infer(company_name, recall_str)
         if len(llm_result) > 0 and llm_result != "null":
             return [
-                SPGRecord(
-                    spg_type_name="SupplyChain.Company",
-                    properties={"id": recall_dict[llm_result]},
-                )
+                SPGRecord(spg_type_name="SupplyChain.Company").upsert_properties(
+                    {"id": recall_dict[llm_result]}
+                ),
             ]
         return []

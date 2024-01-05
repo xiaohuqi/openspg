@@ -272,6 +272,43 @@ class ConceptType(BaseSpgType):
         self.link_operator = operator
         return self
 
+    @property
+    def fuse_operator(self):
+        """Gets the fuse_operator of this EntityType.  # noqa: E501
+
+
+        :return: The fuse_operator of this EntityType.  # noqa: E501
+        :rtype: Operator
+        """
+        if self._rest_model.advanced_config.fuse_operator is None:
+            return None
+        op_name = self._rest_model.advanced_config.fuse_operator.name
+        op_version = self._rest_model.advanced_config.fuse_operator.version
+        return self.fuse_operator.to_rest(op_name, op_version)
+
+    @fuse_operator.setter
+    def fuse_operator(self, fuse_operator: FuseOp):
+        """Sets the fuse_operator of this EntityType.
+
+
+        :param fuse_operator: The fuse_operator of this EntityType.  # noqa: E501
+        :type: Operator
+        """
+
+        if fuse_operator is None:
+            self._rest_model.advanced_config.fuse_operator = None
+            return
+        if self._rest_model.advanced_config.fuse_operator is None:
+            self._rest_model.advanced_config.fuse_operator = rest.OperatorKey()
+        self._rest_model.advanced_config.fuse_operator.name = fuse_operator.name
+        self._rest_model.advanced_config.fuse_operator.version = fuse_operator._version
+
+    def bind_fuse_operator(self, operator: FuseOp):
+        """Binds a fuse operator to this EntityType."""
+
+        self.fuse_operator = operator
+        return self
+
 
 class EventType(BaseSpgType):
     """EventType Model."""

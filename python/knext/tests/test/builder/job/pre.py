@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from knext.client.model.builder_job import BuilderJob
-from knext.api.component import CSVReader, UserDefinedExtractor, SPGTypeMapping, KGWriter
-from knext.component.builder import SubGraphMapping
+from knext.api.component import (
+    CSVReader,
+    UserDefinedExtractor,
+    SPGTypeMapping,
+    KGWriter,
+)
 
 try:
     from schema.test_schema_helper import TEST
@@ -18,7 +22,7 @@ class Pre(BuilderJob):
         source = CSVReader(
             local_path="./builder/job/data/pre.csv",
             columns=["id", "filter"],
-            start_row=2
+            start_row=2,
         )
 
         entity_mapping_2 = (
@@ -29,7 +33,7 @@ class Pre(BuilderJob):
         )
 
         entity_mapping_3 = (
-            SubGraphMapping(spg_type_name=TEST.Entity3)
+            SPGTypeMapping(spg_type_name=TEST.Entity3)
             .add_mapping_field("id", TEST.Entity3.id)
             .add_mapping_field("id", TEST.Entity3.name)
             .add_filter("filter", "3")

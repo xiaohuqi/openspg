@@ -6,12 +6,22 @@ from schema.test_schema_helper import TEST
 
 
 class PreConcept(BuilderJob):
-
     def build(self):
         source = CSVReader(
             local_path="./builder/job/data/data_constructor.csv",
-            columns=["id", "text", "integer", "float", "standard", "concept", "lead_to_concept", "relevant_event_id", "subject_entity_id", "subject_relation_id"],
-            start_row=1
+            columns=[
+                "id",
+                "text",
+                "integer",
+                "float",
+                "standard",
+                "concept",
+                "lead_to_concept",
+                "relevant_event_id",
+                "subject_entity_id",
+                "subject_relation_id",
+            ],
+            start_row=1,
         )
 
         concept_mapping_1 = (

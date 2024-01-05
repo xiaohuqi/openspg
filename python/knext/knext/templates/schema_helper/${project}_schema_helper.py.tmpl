@@ -20,10 +20,19 @@ from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHe
 
 class {{namespace}}:
     {% for spg_type in spg_types %}
-    class {{spg_type.name}}(SPGTypeHelper):{% for property in spg_type.properties %}
+    class {{spg_type.name}}(SPGTypeHelper):{% for property,sub in spg_type.sub_properties.items() %}
+        class {{property}}(PropertyHelper):{% for sub_prop in sub %}
+            {{sub_prop}} = PropertyHelper("{{sub_prop}}"){% endfor %}{% endfor %}
+        {% for relation,sub in spg_type.relation_sub_properties.items() %}
+        class {{relation}}(RelationHelper):{% for sub_prop in sub %}
+            {{sub_prop}} = PropertyHelper("{{sub_prop}}"){% endfor %}{% endfor %}{% for property in spg_type.sub_properties %}
+        {{property}} = {{property}}("{{property}}"){% endfor %}
+    {% for property in spg_type.properties %}
         {{property}} = PropertyHelper("{{property}}"){% endfor %}
     {% for relation in spg_type.relations %}
         {{relation}} = RelationHelper("{{relation}}"){% endfor %}
+    {% for relation in spg_type.relation_sub_properties %}
+        {{relation}} = {{relation}}("{{relation}}"){% endfor %}
     {% endfor %}
     {% for spg_type in spg_types %}{{spg_type.name}} = {{spg_type.name}}("{{namespace}}.{{spg_type.name}}")
     {% endfor %}

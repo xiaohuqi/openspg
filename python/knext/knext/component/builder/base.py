@@ -12,6 +12,7 @@
 
 from abc import ABC
 from enum import Enum
+from functools import cmp_to_key
 from typing import Union
 
 from knext.component.base import Component
@@ -77,6 +78,32 @@ class Mapping(BuilderComponent, ABC):
     @property
     def downstream_types(self):
         return Union[SinkWriter]
+
+    @staticmethod
+    def sort_by_dependency(mappings: list):
+
+        from knext.component.builder import SPGTypeMapping
+
+        def comparator(x: SPGTypeMapping, y: SPGTypeMapping):
+            if x.spg_type_name in y.dependencies:
+                return -1
+            elif y.spg_type_name in x.dependencies:
+                return 1
+            else:
+                return 0
+
+        from knext import rest
+
+        if len(mappings) == 1:
+            return rest.SpgTypeMappingNodeConfigs(
+                mapping_node_configs=[m.to_rest().node_config for m in mappings]
+            )
+
+        sorted_mappings = sorted(mappings, key=cmp_to_key(comparator))
+
+        return rest.SpgTypeMappingNodeConfigs(
+            mapping_node_configs=[m.to_rest().node_config for m in sorted_mappings]
+        )
 
 
 class SinkWriter(BuilderComponent, ABC):

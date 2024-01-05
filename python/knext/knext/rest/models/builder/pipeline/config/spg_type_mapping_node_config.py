@@ -49,7 +49,6 @@ class SpgTypeMappingNodeConfig(object):
         "mapping_filters": "list[MappingFilter]",
         "mapping_configs": "list[MappingConfig]",
         "subject_fusing_config": "BaseFusingConfig",
-        "predicting_configs": "list[PredictingConfig]",
     }
 
     attribute_map = {
@@ -58,7 +57,6 @@ class SpgTypeMappingNodeConfig(object):
         "mapping_filters": "mappingFilters",
         "mapping_configs": "mappingConfigs",
         "subject_fusing_config": "subjectFusingConfig",
-        "predicting_configs": "predictingConfigs",
     }
 
     def __init__(
@@ -68,7 +66,6 @@ class SpgTypeMappingNodeConfig(object):
         mapping_filters=None,
         mapping_configs=None,
         subject_fusing_config=None,
-        predicting_configs=None,
         local_vars_configuration=None,
     ):  # noqa: E501
         """SpgTypeMappingNodeConfig - a model defined in OpenAPI"""  # noqa: E501
@@ -81,7 +78,6 @@ class SpgTypeMappingNodeConfig(object):
         self._mapping_filters = None
         self._mapping_configs = None
         self._subject_fusing_config = None
-        self._predicting_configs = None
         self.discriminator = type
 
         self.type = type
@@ -93,8 +89,6 @@ class SpgTypeMappingNodeConfig(object):
             self.mapping_configs = mapping_configs
         if subject_fusing_config is not None:
             self.subject_fusing_config = subject_fusing_config
-        if predicting_configs is not None:
-            self.predicting_configs = predicting_configs
 
     @property
     def type(self):
@@ -224,27 +218,6 @@ class SpgTypeMappingNodeConfig(object):
         """
 
         self._subject_fusing_config = subject_fusing_config
-
-    @property
-    def predicting_configs(self):
-        """Gets the predicting_configs of this SpgTypeMappingNodeConfig.  # noqa: E501
-
-
-        :return: The predicting_configs of this SpgTypeMappingNodeConfig.  # noqa: E501
-        :rtype: list[PredictingConfig]
-        """
-        return self._predicting_configs
-
-    @predicting_configs.setter
-    def predicting_configs(self, predicting_configs):
-        """Sets the predicting_configs of this SpgTypeMappingNodeConfig.
-
-
-        :param predicting_configs: The predicting_configs of this SpgTypeMappingNodeConfig.  # noqa: E501
-        :type: list[PredictingConfig]
-        """
-
-        self._predicting_configs = predicting_configs
 
     def to_dict(self):
         """Returns the model properties as a dict"""

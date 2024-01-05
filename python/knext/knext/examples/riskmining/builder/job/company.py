@@ -10,13 +10,14 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 
-from knext.client.model.builder_job import BuilderJob
-from knext.api.component import SPGTypeMapping
 from knext.api.component import (
     CSVReader,
     KGWriter,
 )
-from knext.component.builder import RelationMapping
+from knext.api.component import SPGTypeMapping
+from knext.client.model.builder_job import BuilderJob
+from knext.component.builder.mapping import RelationMapping
+
 from schema.riskmining_schema_helper import RiskMining
 
 
@@ -30,9 +31,9 @@ class Company(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=RiskMining.Company)
-            .add_mapping_field("id", RiskMining.Company.id)
-            .add_mapping_field("name", RiskMining.Company.name)
-            .add_mapping_field("phone", RiskMining.Company.hasPhone)
+            .add_property_mapping("id", RiskMining.Company.id)
+            .add_property_mapping("name", RiskMining.Company.name)
+            .add_property_mapping("phone", RiskMining.Company.hasPhone)
         )
 
         sink = KGWriter()
@@ -54,8 +55,8 @@ class CompanyHasCert(BuilderJob):
                 predicate_name="hasCert",
                 object_name=RiskMining.Cert,
             )
-            .add_mapping_field("src", "srcId")
-            .add_mapping_field("dst", "dstId")
+            .add_sub_property_mapping("src", "srcId")
+            .add_sub_property_mapping("dst", "dstId")
         )
 
         sink = KGWriter()

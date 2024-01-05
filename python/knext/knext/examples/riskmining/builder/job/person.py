@@ -12,8 +12,10 @@
 
 from knext.client.model.builder_job import BuilderJob
 from knext.api.component import SPGTypeMapping
-from knext.api.component import CSVReader, KGWriter, RelationMapping
+from knext.api.component import CSVReader, KGWriter
 from schema.riskmining_schema_helper import RiskMining
+
+from knext.component.builder.mapping import RelationMapping
 
 
 class Person(BuilderJob):
@@ -26,10 +28,10 @@ class Person(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=RiskMining.Person)
-            .add_mapping_field("id", RiskMining.Person.id)
-            .add_mapping_field("name", RiskMining.Person.name)
-            .add_mapping_field("age", RiskMining.Person.age)
-            .add_mapping_field("hasPhone", RiskMining.Person.hasPhone)
+            .add_property_mapping("id", RiskMining.Person.id)
+            .add_property_mapping("name", RiskMining.Person.name)
+            .add_property_mapping("age", RiskMining.Person.age)
+            .add_property_mapping("hasPhone", RiskMining.Person.hasPhone)
         )
 
         sink = KGWriter()
@@ -51,12 +53,11 @@ class PersonFundTrans(BuilderJob):
                 predicate_name="fundTrans",
                 object_name=RiskMining.Person,
             )
-            .add_mapping_field("src", "srcId")
-            .add_mapping_field("dst", "dstId")
-            .add_mapping_field("transDate", "transDate")
-            .add_mapping_field("transAmt", "transAmt")
+            .add_sub_property_mapping("src", "srcId")
+            .add_sub_property_mapping("dst", "dstId")
+            .add_sub_property_mapping("transDate", "transDate")
+            .add_sub_property_mapping("transAmt", "transAmt")
         )
-
         sink = KGWriter()
 
         return source >> mapping >> sink
@@ -76,8 +77,8 @@ class PersonHasDevice(BuilderJob):
                 predicate_name="hasDevice",
                 object_name=RiskMining.Device,
             )
-            .add_mapping_field("src", "srcId")
-            .add_mapping_field("dst", "dstId")
+            .add_sub_property_mapping("src", "srcId")
+            .add_sub_property_mapping("dst", "dstId")
         )
 
         sink = KGWriter()
@@ -99,8 +100,8 @@ class PersonHoldShare(BuilderJob):
                 predicate_name="holdShare",
                 object_name=RiskMining.Company,
             )
-            .add_mapping_field("src", "srcId")
-            .add_mapping_field("dst", "dstId")
+            .add_sub_property_mapping("src", "srcId")
+            .add_sub_property_mapping("dst", "dstId")
         )
 
         sink = KGWriter()

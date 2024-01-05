@@ -25,9 +25,9 @@ class Cert(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=RiskMining.Cert)
-            .add_mapping_field("certNum", RiskMining.Cert.id)
-            .add_mapping_field("certNum", RiskMining.Cert.certNum)
-            .add_mapping_field("certNum", RiskMining.Cert.name)
+            .add_property_mapping("certNum", RiskMining.Cert.id)
+            .add_property_mapping("certNum", RiskMining.Cert.certNum)
+            .add_property_mapping("certNum", RiskMining.Cert.name)
         )
 
         sink = KGWriter()

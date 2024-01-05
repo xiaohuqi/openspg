@@ -17,7 +17,7 @@ from knext.api.operator import PredictOp
 
 
 class TestPredictOp(PredictOp):
-    bind_to = ("TEST.Entity1", "predictProperty", "TEST.Entity3")
+    bind_to = ("TEST.Entity1", "predictRelation", "TEST.Entity3")
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         print("####################TestPredictOp#####################")
@@ -27,14 +27,16 @@ class TestPredictOp(PredictOp):
 
         predict_record = SPGRecord(
             spg_type_name="TEST.Entity3",
+        )
+        predict_record.upsert_properties(
             properties={
                 "id": "TestEntity3",
                 "name": "TestEntity3",
             }
         )
+        print(predict_record.to_dict())
         print("TestPredictOp(Output): ")
         print("----------------------")
         print([predict_record])
 
         return [predict_record]
-
