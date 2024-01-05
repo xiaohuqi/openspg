@@ -33,6 +33,7 @@ class BuilderJob:
 
     _registry: Dict[str, Type] = {}
     _local_path: str
+    _module_path: str
     _has_registered: bool = False
 
     def build(self) -> BuilderChain:
@@ -44,7 +45,7 @@ class BuilderJob:
         )
 
     @classmethod
-    def register(cls, name: str, local_path: str):
+    def register(cls, name: str, local_path: str, module_path: str):
         """Register a class as subclass of BuilderJob with name and local_path.
         After registration, the subclass object can be inspected by `BuilderJob.by_name(job_name)`.
         """
@@ -52,6 +53,7 @@ class BuilderJob:
         def add_subclass_to_registry(subclass: Type["BuilderJob"]):
             subclass.name = name
             subclass._local_path = local_path
+            subclass._module_path = module_path
             if name in cls._registry:
                 raise ValueError(
                     f"BuilderJob [{name}] conflict in {subclass._local_path} and {cls.by_name(name)._local_path}."

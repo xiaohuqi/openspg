@@ -83,20 +83,21 @@ def mock_chinese(length: int = 2):
 
 
 def mock_data():
-    _id = str(mock_int(1, 100))
+    _id = "event" + str(mock_int(1, 100))
     _text = mock_str(10)
     _integer = mock_int(1, 10000)
     _float = mock_float(10000)
     _standard = mock_date("20240101", "20240131")
-    _concept = mock_chinese(2)
+    _concept = "concept1_" + mock_chinese(2)
     _confidence_concept = mock_float(1)
-    _lead_to_concept2 = mock_chinese(2)
-    _lead_to_concept3 = mock_chinese(2)
-    _event = str(mock_int(1, 100))
+    _lead_to_concept2 = "concept2_" + mock_chinese(2)
+    _lead_to_concept3 = "concept3_" + mock_chinese(2)
+    _event = "event" + str(mock_int(1, 100))
     _confidence_event = mock_float(1)
     _source_event = mock_str(10)
-    _entity = str(mock_int(100, 200))
-    _entity_relation = str(mock_int(100, 200))
+    _entity = "entity1_" + str(mock_int(100, 200))
+    _entity2_id = "entity2_" + str(mock_int(200, 300))
+    _entity3_id = "entity3_" + str(mock_int(300, 400))
     return [
         _id,
         _text,
@@ -111,7 +112,8 @@ def mock_data():
         _confidence_event,
         _source_event,
         _entity,
-        _entity_relation,
+        _entity2_id,
+        _entity3_id,
     ]
 
 
@@ -120,13 +122,13 @@ if __name__ == "__main__":
     ["id", "text", "integer", "float", "standard",
      "concept", "confidence_concept", "lead_to_concept2", "lead_to_concept3"
      "event", "confidence_event", "source_event",
-     "entity", "entity_relation"],
+     "entity", "entity_relation", "predict_relation"],
     """
     import csv
 
     data_count = 1
 
-    with open("data.csv", "a", newline="") as file:
+    with open("two_degree_sub_graph_op.csv", "a", newline="") as file:
         for _ in range(data_count):
             row_to_insert = mock_data()
             writer = csv.writer(file)

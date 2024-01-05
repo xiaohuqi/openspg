@@ -12,10 +12,13 @@
 from abc import ABC
 from typing import List, Dict, Any
 
+import knext.common.cache
 from knext.common.schema_helper import SPGTypeName, TripletName
 from knext.operator.base import BaseOp
 from knext.operator.invoke_result import InvokeResult
 from knext.operator.spg_record import SPGRecord
+
+cache = knext.common.cache.LinkCache(500, 60)
 
 
 class ExtractOp(BaseOp, ABC):
@@ -50,13 +53,26 @@ class LinkOp(BaseOp, ABC):
 
     bind_schemas: Dict[SPGTypeName, str] = {}
 
-    def __init__(self, params: Dict[str, str] = None):
-        super().__init__(params)
+    def __init__(self):
+        super().__init__()
 
     def invoke(self, property: str, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
             f"{self.__class__.__name__} need to implement `invoke` method."
         )
+
+    def _handle(self, *inputs) -> Dict[str, Any]:
+        _property, subject_record = self._pre_process(*inputs)
+        cache_key = str(self.bind_to) + _property
+        cache_property = cache.get(cache_key)
+        if cache_property:
+            output = [SPGRecord(spg_type_name=self.bind_to).upsert_property("id", cache_property)]
+        else:
+            output = self.invoke(_property, subject_record)
+        print("jierlink")
+        print(output)
+        post_output = self._post_process(output)
+        return post_output
 
     @staticmethod
     def _pre_process(*inputs):
@@ -82,8 +98,8 @@ class FuseOp(BaseOp, ABC):
 
     bind_schemas: Dict[SPGTypeName, str] = {}
 
-    def __init__(self, params: Dict[str, str] = None):
-        super().__init__(params)
+    def __init__(self):
+        super().__init__()
 
     def link(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
@@ -98,11 +114,17 @@ class FuseOp(BaseOp, ABC):
         )
 
     def invoke(self, subject_records: List[SPGRecord]) -> List[SPGRecord]:
-        merged_records = []
+        records = []
         for record in subject_records:
+            cache_key = str(self.bind_to) + record.get_property("id", "")
             linked_records = self.link(record)
-            merged_records.extend(self.merge(record, linked_records))
-        return merged_records
+            merged_records = self.merge(record, linked_records)
+            if merged_records:
+                cache.put(cache_key, ','.join([_r.get_property("id", "") for _r in merged_records]))
+            records.extend(merged_records)
+        print("jierfuse")
+        print(records)
+        return records
 
     @staticmethod
     def _pre_process(*inputs):
@@ -153,6 +175,9 @@ class PredictOp(BaseOp, ABC):
     bind_to: TripletName
 
     bind_schemas: Dict[TripletName, str] = {}
+
+    def __init__(self):
+        super().__init__()
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
