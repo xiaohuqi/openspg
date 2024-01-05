@@ -2,7 +2,7 @@ namespace TEST
 
 STD.Standard(标准类型): StandardType
     spreadable: True
-    regular: ^([0-9A-HJ-NPQRTUWXY]{2}\\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\\d{14})$
+    regular: ^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$
 
 Entity3(实体3): EntityType
 

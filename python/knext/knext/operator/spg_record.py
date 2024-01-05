@@ -16,7 +16,6 @@ from knext.common.schema_helper import (
     SPGTypeName,
     PropertyName,
     RelationName,
-    TripletName,
 )
 
 
@@ -110,6 +109,7 @@ class SPGRecord:
         :type: str
         """
         self.properties[property_name] = value
+        return self
 
     def upsert_properties(self, properties: Dict[PropertyName, str]):
         """Upsert properties of this SPGRecord.  # noqa: E501
@@ -119,6 +119,7 @@ class SPGRecord:
         :type: dict
         """
         self.properties.update(properties)
+        return self
 
     def remove_property(self, property_name: PropertyName):
         """Removes a property of this SPGRecord.  # noqa: E501
@@ -128,6 +129,7 @@ class SPGRecord:
         :type: str
         """
         self.properties.pop(property_name)
+        return self
 
     def remove_properties(self, property_names: List[PropertyName]):
         """Removes properties by given names.  # noqa: E501
@@ -138,6 +140,7 @@ class SPGRecord:
         """
         for property_name in property_names:
             self.properties.pop(property_name)
+        return self
 
     def get_relation(
         self,
@@ -168,9 +171,10 @@ class SPGRecord:
         :type: str
         """
         self.relations[relation_name + "#" + object_type_name] = value
+        return self
 
-    def update_relations(self, relations: Dict[Tuple[RelationName, SPGTypeName], str]):
-        """Updates relations of this SPGRecord.  # noqa: E501
+    def upsert_relations(self, relations: Dict[Tuple[RelationName, SPGTypeName], str]):
+        """Upsert relations of this SPGRecord.  # noqa: E501
 
 
         :param relations: The updated relations.  # noqa: E501
@@ -178,6 +182,7 @@ class SPGRecord:
         """
         for (relation_name, object_type_name), value in relations.items():
             self.relations[relation_name + "#" + object_type_name] = value
+        return self
 
     def remove_relation(
         self, relation_name: RelationName, object_type_name: SPGTypeName
@@ -190,6 +195,7 @@ class SPGRecord:
         :type: str
         """
         self.relations.pop(relation_name + "#" + object_type_name)
+        return self
 
     def remove_relations(self, relation_names: List[Tuple[RelationName, SPGTypeName]]):
         """Removes relations by given names.  # noqa: E501
@@ -200,6 +206,7 @@ class SPGRecord:
         """
         for (relation_name, object_type_name) in relation_names:
             self.relations.pop(relation_name + "#" + object_type_name)
+        return self
 
     def to_str(self):
         """Returns the string representation of the model"""
