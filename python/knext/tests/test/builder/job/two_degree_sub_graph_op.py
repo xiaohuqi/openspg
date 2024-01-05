@@ -5,13 +5,13 @@ from knext.api.component import CSVReader, SPGTypeMapping, KGWriter
 
 from schema.test_schema_helper import TEST
 
-from knext.component.builder.mapping import LinkingStrategyEnum
+from knext.component.builder.mapping import LinkingStrategyEnum, FusingStrategyEnum
 
 
-class Test(BuilderJob):
+class TwoDegreeSubGraphOp(BuilderJob):
     def build(self):
         source = CSVReader(
-            local_path="./builder/job/data/data.csv",
+            local_path="./builder/job/data/two_degree_sub_graph.csv",
             columns=[
                 "id",
                 "text",
@@ -21,11 +21,13 @@ class Test(BuilderJob):
                 "concept",
                 "confidence_concept",
                 "lead_to_concept2",
-                "lead_to_concept3" "event",
+                "lead_to_concept3",
+                "event",
                 "confidence_event",
                 "source_event",
                 "entity",
                 "entity_relation",
+                "predict_relation",
             ],
             start_row=1,
         )
@@ -39,26 +41,15 @@ class Test(BuilderJob):
             .add_property_mapping("float", TEST.CenterEvent.basicFloatProperty)
             .add_property_mapping("standard", TEST.CenterEvent.standardProperty)
             .add_property_mapping(
-                "concept",
-                TEST.CenterEvent.conceptProperty,
-                TEST.Concept1,
-                LinkingStrategyEnum.IDEquals,
+                "concept", TEST.CenterEvent.conceptProperty, TEST.Concept1
             )
-            .add_property_mapping(
-                "entity",
-                TEST.CenterEvent.subject,
-                TEST.Entity1,
-                LinkingStrategyEnum.IDEquals,
-            )
+            .add_property_mapping("entity", TEST.CenterEvent.subject, TEST.Entity1)
             .add_relation_mapping(
-                "event",
-                TEST.CenterEvent.eventRelation,
-                TEST.CenterEvent,
-                LinkingStrategyEnum.IDEquals,
+                "event", TEST.CenterEvent.eventRelation, TEST.CenterEvent
             )
         )
 
-        entity_mapping = (
+        entity1_mapping = (
             SPGTypeMapping(spg_type_name=TEST.Entity1)
             .add_property_mapping("entity", TEST.Entity1.id)
             .add_property_mapping("entity", TEST.Entity1.name)
@@ -68,24 +59,42 @@ class Test(BuilderJob):
             .add_predicting_relation(TEST.Entity1.predictRelation, TEST.Entity3)
         )
 
-        concept_mapping = (
+        concept1_mapping = (
             SPGTypeMapping(spg_type_name=TEST.Concept1)
             .add_property_mapping("concept", TEST.Concept1.id)
             .add_property_mapping("concept", TEST.Concept1.name)
             .add_relation_mapping(
-                "lead_to_concept2",
-                TEST.Concept1.leadTo,
-                TEST.Concept2,
-                LinkingStrategyEnum.IDEquals,
+                "lead_to_concept2", TEST.Concept1.leadTo, TEST.Concept2
             )
             .add_relation_mapping(
-                "lead_to_concept3",
-                TEST.Concept1.leadTo,
-                TEST.Concept3,
-                LinkingStrategyEnum.IDEquals,
+                "lead_to_concept3", TEST.Concept1.leadTo, TEST.Concept3
             )
+        )
+
+        entity2_mapping = (
+            SPGTypeMapping(spg_type_name=TEST.Entity2)
+            .add_property_mapping("entity_relation", TEST.Entity2.id)
+            .add_property_mapping("entity_relation", TEST.Entity2.name)
+        )
+
+        entity3_mapping = (
+            SPGTypeMapping(spg_type_name=TEST.Entity3)
+            .add_property_mapping("predict_relation", TEST.Entity3.id)
+            .add_property_mapping("predict_relation", TEST.Entity3.name)
+        )
+
+        concept2_mapping = (
+            SPGTypeMapping(spg_type_name=TEST.Concept2)
+            .add_property_mapping("lead_to_concept2", TEST.Concept3.id)
+            .add_property_mapping("lead_to_concept2", TEST.Concept3.name)
+        )
+
+        concept3_mapping = (
+            SPGTypeMapping(spg_type_name=TEST.Concept3)
+            .add_property_mapping("lead_to_concept3", TEST.Concept3.id)
+            .add_property_mapping("lead_to_concept3", TEST.Concept3.name)
         )
 
         sink = KGWriter()
 
-        return source >> [event_mapping, entity_mapping, concept_mapping] >> sink
+        return source >> [event_mapping, entity1_mapping, concept2_mapping, concept1_mapping, entity3_mapping, entity2_mapping, concept3_mapping] >> sink

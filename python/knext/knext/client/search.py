@@ -11,11 +11,13 @@
 # or implied.
 
 import pprint
-from typing import Dict
+from typing import Dict, List, Optional
 
 from elasticsearch import Elasticsearch
 
 from knext import rest
+from knext.common.schema_helper import PropertyName
+from knext.operator.spg_record import SPGRecord
 
 
 class IdxRecord:
@@ -30,8 +32,9 @@ class IdxRecord:
     """
 
     def __init__(
-        self, index_name: str, doc_id: str, score: float, properties: Dict[str, str]
+        self, spg_type_name: str, index_name: str, doc_id: str, score: float, properties: Dict[str, str]
     ):
+        self.spg_type_name = spg_type_name
         self.index_name = index_name
         self.doc_id = doc_id
         self.score = score
@@ -45,6 +48,13 @@ class IdxRecord:
         """Returns the string representation of the model"""
         return pprint.pformat(self.__dict__)
 
+    def to_spg_record(self):
+        record = SPGRecord(self.spg_type_name)
+        record.upsert_property("id", self.doc_id)
+        for name, value in self.properties.items():
+            record.upsert_property(name, value)
+        return record
+
 
 class SearchClient:
     """Client connected to search engine, which can be imported in operator to recall entities.
@@ -52,11 +62,12 @@ class SearchClient:
 
     """
 
-    def __init__(self, spg_type: str):
+    def __init__(self, spg_type_name: str):
         _client = rest.BuilderApi()
-        response = _client.search_engine_index_get(spg_type=spg_type)
+        response = _client.search_engine_index_get(spg_type=spg_type_name)
 
         self.index_name = response.index_name
+        self.spg_type_name = spg_type_name
         self.client = Elasticsearch("http://127.0.0.1:9200")
 
     def search(self, query, sort=None, filter=None, start: int = 0, size: int = 10):
@@ -87,6 +98,7 @@ class SearchClient:
             for hit in hits:
                 records.append(
                     IdxRecord(
+                        self.spg_type_name,
                         hit.get("_index"),
                         hit.get("_id"),
                         hit.get("_score"),
@@ -95,3 +107,47 @@ class SearchClient:
                 )
             return records
         return None
+
+    def fuzzy_search(self, record: SPGRecord, property_name: PropertyName, size: int = 10) -> List[SPGRecord]:
+        property_value = record.get_property(property_name)
+        if not property_value:
+            return []
+        query = {"match": {property_name: property_value}}
+        records = []
+        recall_results = self.search(query, size=size)
+        if recall_results:
+            for recall_result in recall_results:
+                records.append(
+                    recall_result.to_spg_record()
+                )
+        return records
+
+    def exact_search(self, record: SPGRecord, property_name: PropertyName) -> Optional[SPGRecord]:
+        property_value = record.get_property(property_name)
+        if not property_value:
+            return None
+        query = {"match": {property_name: property_value}}
+        recall_results = self.search(query, size=1)
+        if recall_results:
+            if recall_results[0].properties.get(property_name) == property_value:
+                return recall_results[0].to_spg_record()
+        return None
+
+    def exact_search_by_property(self, property_value: str, property_name: PropertyName) -> Optional[SPGRecord]:
+        query = {"match": {property_name: property_value}}
+        recall_results = self.search(query, size=1)
+        if recall_results:
+            if recall_results[0].properties.get(property_name) == property_value:
+                return recall_results[0].to_spg_record()
+        return None
+
+    def fuzzy_search_by_property(self, property_value: str, property_name: PropertyName, size: int = 10) -> List[SPGRecord]:
+        query = {"match": {property_name: property_value}}
+        records = []
+        recall_results = self.search(query, size=size)
+        if recall_results:
+            for recall_result in recall_results:
+                records.append(
+                    recall_result.to_spg_record()
+                )
+        return records

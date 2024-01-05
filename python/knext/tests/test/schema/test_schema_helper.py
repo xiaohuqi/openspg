@@ -19,61 +19,66 @@ from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHe
 
 
 class TEST:
+    
     class CenterEvent(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         subject = PropertyHelper("subject")
-        standardProperty = PropertyHelper("standardProperty")
         conceptProperty = PropertyHelper("conceptProperty")
+        basicIntegerProperty = PropertyHelper("basicIntegerProperty")
         eventTime = PropertyHelper("eventTime")
         basicTextProperty = PropertyHelper("basicTextProperty")
-        basicIntegerProperty = PropertyHelper("basicIntegerProperty")
         basicFloatProperty = PropertyHelper("basicFloatProperty")
-
+        standardProperty = PropertyHelper("standardProperty")
+    
         eventRelation = RelationHelper("eventRelation")
-
+    
     class Concept1(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
-
+    
         leadTo = RelationHelper("leadTo")
-
+    
     class Concept2(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
-
+    
+    
     class Concept3(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
+        stdId = PropertyHelper("stdId")
+    
+    
     class Entity1(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-
-        entityRelation = RelationHelper("entityRelation")
+    
         predictRelation = RelationHelper("predictRelation")
-
+        entityRelation = RelationHelper("entityRelation")
+    
     class Entity2(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-
+    
+    
     class Entity3(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-
+    
+    
     CenterEvent = CenterEvent("TEST.CenterEvent")
     Concept1 = Concept1("TEST.Concept1")
     Concept2 = Concept2("TEST.Concept2")
@@ -81,5 +86,5 @@ class TEST:
     Entity1 = Entity1("TEST.Entity1")
     Entity2 = Entity2("TEST.Entity2")
     Entity3 = Entity3("TEST.Entity3")
-
+    
     pass

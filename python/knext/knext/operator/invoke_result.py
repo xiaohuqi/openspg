@@ -38,7 +38,7 @@ class InvokeResult(Generic[T]):
         return {
             "data": self.data
             if isinstance(self.data, str)
-            else [data.to_dict() for data in self.data]
+            else [data.to_dict() for data in self.data if data]
             if self.data
             else [],
             "traces": self.traces,

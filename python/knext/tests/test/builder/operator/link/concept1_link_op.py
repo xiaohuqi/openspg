@@ -14,28 +14,28 @@ from typing import List
 
 from knext.api.record import SPGRecord
 from knext.api.operator import LinkOp
+from knext.api.client import SearchClient
+
+from schema.test_schema_helper import TEST
 
 
-class TestLinkOp(LinkOp):
-    bind_to = "TEST.Entity2"
+class Concept1LinkOp(LinkOp):
+    bind_to = TEST.Concept1
+
+    def __init__(self):
+        super().__init__()
+        self.search_client = SearchClient(self.bind_to)
 
     def invoke(self, property: str, subject_record: SPGRecord) -> List[SPGRecord]:
-        print("####################TestLinkOp#####################")
-        print("TestLinkOp(Input): ")
-        print("----------------------")
+        print("####################Concept1LinkOp#####################")
+        print("Concept1LinkOp(Input): ")
+        print("--------------------------------------------")
         print(f"property: {property}, subject_record: {subject_record}")
 
-        recall_record = SPGRecord(
-            spg_type_name="TEST.Entity2",
-        )
-        recall_record.upsert_properties(
-            properties={
-                "id": property,
-                "name": property,
-            },
-        )
-        print("TestLinkOp(Output): ")
-        print("----------------------")
-        print([recall_record])
+        linked_record = self.search_client.exact_search_by_property(property, TEST.Concept1.id)
 
-        return [recall_record]
+        print("Concept1LinkOp(Output): ")
+        print("--------------------------------------------")
+        print([linked_record])
+
+        return [linked_record]

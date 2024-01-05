@@ -50,8 +50,8 @@ class LinkOp(BaseOp, ABC):
 
     bind_schemas: Dict[SPGTypeName, str] = {}
 
-    def __init__(self, params: Dict[str, str] = None):
-        super().__init__(params)
+    def __init__(self):
+        super().__init__()
 
     def invoke(self, property: str, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
@@ -82,8 +82,8 @@ class FuseOp(BaseOp, ABC):
 
     bind_schemas: Dict[SPGTypeName, str] = {}
 
-    def __init__(self, params: Dict[str, str] = None):
-        super().__init__(params)
+    def __init__(self):
+        super().__init__()
 
     def link(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
@@ -153,6 +153,9 @@ class PredictOp(BaseOp, ABC):
     bind_to: TripletName
 
     bind_schemas: Dict[TripletName, str] = {}
+
+    def __init__(self):
+        super().__init__()
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(
