@@ -27,8 +27,8 @@ class Trend(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.Trend)
-            .add_mapping_field("id", SupplyChain.Trend.id)
-            .add_mapping_field("id", SupplyChain.Trend.name)
+            .add_property_mapping("id", SupplyChain.Trend.id)
+            .add_property_mapping("id", SupplyChain.Trend.name)
         )
 
         sink = KGWriter()

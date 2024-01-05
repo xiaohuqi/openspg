@@ -29,10 +29,10 @@ class Device(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=RiskMining.Device)
-            .add_mapping_field("id", RiskMining.Device.id)
-            .add_mapping_field("umid", RiskMining.Device.umid)
-            .add_mapping_field("umid", RiskMining.Device.name)
-            .add_mapping_field("install", RiskMining.Device.install)
+            .add_property_mapping("id", RiskMining.Device.id)
+            .add_property_mapping("umid", RiskMining.Device.umid)
+            .add_property_mapping("umid", RiskMining.Device.name)
+            .add_property_mapping("install", RiskMining.Device.install)
         )
 
         sink = KGWriter()

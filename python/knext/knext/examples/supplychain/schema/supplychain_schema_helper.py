@@ -15,51 +15,60 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class SupplyChain:
+    
     class Company(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        fundTrans6MonthIn = PropertyHelper("fundTrans6MonthIn")
+        totalTransInAmt = PropertyHelper("totalTransInAmt")
+        fundTrans1Month = PropertyHelper("fundTrans1Month")
+        fundTrans6Month = PropertyHelper("fundTrans6Month")
         cashflowDiff3Month = PropertyHelper("cashflowDiff3Month")
+        fundTrans6MonthIn = PropertyHelper("fundTrans6MonthIn")
         cashflowDiff6Month = PropertyHelper("cashflowDiff6Month")
         fundTrans1MonthIn = PropertyHelper("fundTrans1MonthIn")
-        fundTrans6Month = PropertyHelper("fundTrans6Month")
         product = PropertyHelper("product")
         fundTrans3Month = PropertyHelper("fundTrans3Month")
-        cashflowDiff1Month = PropertyHelper("cashflowDiff1Month")
-        totalTransInAmt = PropertyHelper("totalTransInAmt")
         fundTrans3MonthIn = PropertyHelper("fundTrans3MonthIn")
-        fundTrans1Month = PropertyHelper("fundTrans1Month")
-
+        cashflowDiff1Month = PropertyHelper("cashflowDiff1Month")
+    
+        belongToIndustry = RelationHelper("belongToIndustry")
+        mainSupply = RelationHelper("mainSupply")
+        fundTrans = RelationHelper("fundTrans")
+        sameLegalRepresentative = RelationHelper("sameLegalRepresentative")
+    
     class CompanyEvent(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        eventTime = PropertyHelper("eventTime")
-        trend = PropertyHelper("trend")
         index = PropertyHelper("index")
-        subject = PropertyHelper("subject")
-        belongTo = PropertyHelper("belongTo")
         leadTo = PropertyHelper("leadTo")
-
+        belongTo = PropertyHelper("belongTo")
+        trend = PropertyHelper("trend")
+        subject = PropertyHelper("subject")
+        eventTime = PropertyHelper("eventTime")
+    
+    
     class Index(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
+    
+    
     class Industry(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
-
+        alias = PropertyHelper("alias")
+    
+    
     class Person(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
@@ -67,53 +76,62 @@ class SupplyChain:
         age = PropertyHelper("age")
         legalRepresentative = PropertyHelper("legalRepresentative")
         certNo = PropertyHelper("certNo")
-
+    
+    
     class Product(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        belongToIndustry = PropertyHelper("belongToIndustry")
-        belongTo = PropertyHelper("belongTo")
         hasSupplyChain = PropertyHelper("hasSupplyChain")
-
+        belongTo = PropertyHelper("belongTo")
+        belongToIndustry = PropertyHelper("belongToIndustry")
+    
+    
     class ProductChainEvent(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        eventTime = PropertyHelper("eventTime")
-        trend = PropertyHelper("trend")
-        subject = PropertyHelper("subject")
         belongTo = PropertyHelper("belongTo")
         index = PropertyHelper("index")
-
+        subject = PropertyHelper("subject")
+        trend = PropertyHelper("trend")
+        eventTime = PropertyHelper("eventTime")
+    
+        leadTo = RelationHelper("leadTo")
+    
     class TaxOfCompanyEvent(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
+    
+    
     class TaxOfProdEvent(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
-
+        alias = PropertyHelper("alias")
+    
+        leadTo = RelationHelper("leadTo")
+    
     class TaxOfProduct(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
         stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
+    
+    
     class Trend(SPGTypeHelper):
         description = PropertyHelper("description")
         id = PropertyHelper("id")
         name = PropertyHelper("name")
-        alias = PropertyHelper("alias")
         stdId = PropertyHelper("stdId")
-
+        alias = PropertyHelper("alias")
+    
+    
     Company = Company("SupplyChain.Company")
     CompanyEvent = CompanyEvent("SupplyChain.CompanyEvent")
     Index = Index("SupplyChain.Index")
@@ -125,3 +143,5 @@ class SupplyChain:
     TaxOfProdEvent = TaxOfProdEvent("SupplyChain.TaxOfProdEvent")
     TaxOfProduct = TaxOfProduct("SupplyChain.TaxOfProduct")
     Trend = Trend("SupplyChain.Trend")
+    
+    pass

@@ -27,8 +27,8 @@ class Index(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.Index)
-            .add_mapping_field("id", SupplyChain.Index.id)
-            .add_mapping_field("id", SupplyChain.Index.name)
+            .add_property_mapping("id", SupplyChain.Index.id)
+            .add_property_mapping("id", SupplyChain.Index.name)
         )
 
         sink = KGWriter()

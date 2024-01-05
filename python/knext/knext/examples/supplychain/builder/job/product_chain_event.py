@@ -31,11 +31,11 @@ class ProductChainEvent(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.ProductChainEvent)
-            .add_mapping_field("id", SupplyChain.ProductChainEvent.id)
-            .add_mapping_field("name", SupplyChain.ProductChainEvent.name)
-            .add_mapping_field("subject", SupplyChain.ProductChainEvent.subject)
-            .add_mapping_field("index", SupplyChain.ProductChainEvent.index)
-            .add_mapping_field("trend", SupplyChain.ProductChainEvent.trend)
+            .add_property_mapping("id", SupplyChain.ProductChainEvent.id)
+            .add_property_mapping("name", SupplyChain.ProductChainEvent.name)
+            .add_property_mapping("subject", SupplyChain.ProductChainEvent.subject)
+            .add_property_mapping("index", SupplyChain.ProductChainEvent.index)
+            .add_property_mapping("trend", SupplyChain.ProductChainEvent.trend)
         )
 
         sink = KGWriter()

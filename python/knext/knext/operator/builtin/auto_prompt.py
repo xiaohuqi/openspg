@@ -11,11 +11,11 @@
 
 import json
 from abc import ABC
-from typing import Union, List, Dict
+from typing import List, Dict, Tuple
 
 from knext.client.model.base import BaseSpgType
 from knext.client.schema import SchemaClient
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeName, PropertyName, RelationName
 from knext.operator.op import PromptOp
 from knext.operator.spg_record import SPGRecord
 
@@ -36,8 +36,9 @@ input:${input}
 
     def __init__(
         self,
-        spg_type_name: Union[str, SPGTypeHelper],
-        property_names: List[Union[str, PropertyHelper]],
+        spg_type_name: SPGTypeName,
+        property_names: List[PropertyName],
+        relation_names: List[Tuple[RelationName, SPGTypeName]],
         custom_prompt: str = None,
     ):
         super().__init__()
@@ -52,10 +53,11 @@ input:${input}
         for k, v in spg_type.properties.items():
             self.predicate_zh_to_en_name[v.name_zh] = k
             self.predicate_type_zh_to_en_name[v.name_zh] = v.object_type_name
-        self._render(spg_type, property_names)
+        self._render(spg_type, property_names, relation_names)
         self.params = {
             "spg_type_name": spg_type_name,
             "property_names": property_names,
+            "relation_names": relation_names,
             "custom_prompt": custom_prompt,
         }
 
@@ -97,9 +99,8 @@ input:${input}
             else:
                 subject_properties[spo_en_name] = spo_item["object"]
 
-        subject_entity = SPGRecord(
-            spg_type_name=self.spg_type_name, properties=subject_properties
-        )
+        subject_entity = SPGRecord(spg_type_name=self.spg_type_name)
+        subject_entity.properties = subject_properties
         result.append(subject_entity)
         return result
 

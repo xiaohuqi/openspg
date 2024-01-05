@@ -46,12 +46,14 @@ class MappingConfig(object):
         "source": "str",
         "target": "str",
         "strategy_config": "BaseStrategyConfig",
+        "mapping_type": "str",
     }
 
     attribute_map = {
         "source": "source",
         "target": "target",
         "strategy_config": "strategyConfig",
+        "mapping_type": "mappingType",
     }
 
     def __init__(
@@ -59,6 +61,7 @@ class MappingConfig(object):
         source=None,
         target=None,
         strategy_config=None,
+        mapping_type=None,
         local_vars_configuration=None,
     ):  # noqa: E501
         """MappingConfig - a model defined in OpenAPI"""  # noqa: E501
@@ -69,6 +72,7 @@ class MappingConfig(object):
         self._source = None
         self._target = None
         self._strategy_config = None
+        self._mapping_type = None
         self.discriminator = None
 
         if source is not None:
@@ -77,6 +81,8 @@ class MappingConfig(object):
             self.target = target
         if strategy_config is not None:
             self.strategy_config = strategy_config
+        if mapping_type is not None:
+            self.mapping_type = mapping_type
 
     @property
     def source(self):
@@ -140,6 +146,42 @@ class MappingConfig(object):
         """
 
         self._strategy_config = strategy_config
+
+    @property
+    def mapping_type(self):
+        """Gets the mapping_type of this MappingConfig.  # noqa: E501
+
+
+        :return: The mapping_type of this MappingConfig.  # noqa: E501
+        :rtype: str
+        """
+        return self._mapping_type
+
+    @mapping_type.setter
+    def mapping_type(self, mapping_type):
+        """Sets the mapping_type of this MappingConfig.
+
+
+        :param mapping_type: The mapping_type of this MappingConfig.  # noqa: E501
+        :type: str
+        """
+        allowed_values = [
+            "PROPERTY",
+            "RELATION",
+            "SUB_PROPERTY",
+            "SUB_RELATION",
+        ]  # noqa: E501
+        if (
+            self.local_vars_configuration.client_side_validation
+            and mapping_type not in allowed_values
+        ):  # noqa: E501
+            raise ValueError(
+                "Invalid value for `mapping_type` ({0}), must be one of {1}".format(  # noqa: E501
+                    mapping_type, allowed_values
+                )
+            )
+
+        self._mapping_type = mapping_type
 
     def to_dict(self):
         """Returns the model properties as a dict"""

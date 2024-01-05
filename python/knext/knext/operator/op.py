@@ -10,16 +10,12 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 from abc import ABC
-from typing import List, Dict, Any, Tuple, TypeVar
+from typing import List, Dict, Any
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeName, TripletName
 from knext.operator.base import BaseOp
 from knext.operator.invoke_result import InvokeResult
 from knext.operator.spg_record import SPGRecord
-
-
-SPGTypeName = TypeVar("SPGTypeName", str, SPGTypeHelper)
-PropertyName = TypeVar("PropertyName", str, PropertyHelper)
 
 
 class ExtractOp(BaseOp, ABC):
@@ -28,7 +24,7 @@ class ExtractOp(BaseOp, ABC):
     def __init__(self, params: Dict[str, str] = None):
         super().__init__(params)
 
-    def invoke(self, record: Dict[str, str]) -> List[SPGRecord]:
+    def invoke(self, record: Dict[str, str]) -> List[Dict[str, str]]:
         raise NotImplementedError(
             f"{self.__class__.__name__} need to implement `invoke` method."
         )
@@ -119,6 +115,7 @@ class FuseOp(BaseOp, ABC):
         if isinstance(output, tuple):
             return InvokeResult[List[SPGRecord]](*output[:3]).to_dict()
         else:
+            print(output)
             return InvokeResult[List[SPGRecord]](output).to_dict()
 
 
@@ -144,9 +141,6 @@ class PromptOp(BaseOp, ABC):
         if isinstance(response, list) and len(response) > 0:
             response = response[0]
         variables.update({f"{self.__class__.__name__}": response})
-        print("LLM(Output): ")
-        print("----------------------")
-        print([variables])
         return [variables]
 
     def invoke(self, *args):
@@ -154,10 +148,11 @@ class PromptOp(BaseOp, ABC):
 
 
 class PredictOp(BaseOp, ABC):
+    """Base class for all predict operators."""
 
-    bind_to: Tuple[SPGTypeName, PropertyName, SPGTypeName]
+    bind_to: TripletName
 
-    bind_schemas: Dict[Tuple[SPGTypeName, PropertyName, SPGTypeName], str] = {}
+    bind_schemas: Dict[TripletName, str] = {}
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         raise NotImplementedError(

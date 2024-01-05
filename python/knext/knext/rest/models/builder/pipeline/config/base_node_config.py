@@ -108,6 +108,7 @@ class BaseNodeConfig(object):
             "USER_DEFINED_EXTRACT",
             "LLM_BASED_EXTRACT",
             "GRAPH_SINK",
+            "SPG_TYPE_MAPPINGS",
         ]  # noqa: E501
         if (
             self.local_vars_configuration.client_side_validation

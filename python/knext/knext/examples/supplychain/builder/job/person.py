@@ -29,10 +29,10 @@ class Person(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.Person)
-            .add_mapping_field("id", SupplyChain.Person.id)
-            .add_mapping_field("name", SupplyChain.Person.name)
-            .add_mapping_field("age", SupplyChain.Person.age)
-            .add_mapping_field("legalRep", SupplyChain.Person.legalRepresentative)
+            .add_property_mapping("id", SupplyChain.Person.id)
+            .add_property_mapping("name", SupplyChain.Person.name)
+            .add_property_mapping("age", SupplyChain.Person.age)
+            .add_property_mapping("legalRep", SupplyChain.Person.legalRepresentative)
         )
 
         sink = KGWriter()
