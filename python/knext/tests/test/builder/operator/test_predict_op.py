@@ -28,10 +28,12 @@ class TestPredictOp(PredictOp):
         predict_record = SPGRecord(
             spg_type_name="TEST.Entity3",
         )
-        predict_record.upsert_properties(properties={
+        predict_record.upsert_properties(
+            properties={
                 "id": "TestEntity3",
                 "name": "TestEntity3",
-            })
+            }
+        )
         print(predict_record.to_dict())
         print("TestPredictOp(Output): ")
         print("----------------------")

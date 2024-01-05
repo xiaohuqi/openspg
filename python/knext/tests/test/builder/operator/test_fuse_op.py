@@ -47,7 +47,9 @@ class TestFuseOp(FuseOp):
         merged_record = subject_record
         merged_record.upsert_property(
             "id",
-            "_".join([r.get_property("id", "") for r in linked_records + [subject_record]]),
+            "_".join(
+                [r.get_property("id", "") for r in linked_records + [subject_record]]
+            ),
         )
         merged_record.upsert_property(
             "name",

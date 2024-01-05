@@ -39,11 +39,22 @@ class Test(BuilderJob):
             .add_property_mapping("float", TEST.CenterEvent.basicFloatProperty)
             .add_property_mapping("standard", TEST.CenterEvent.standardProperty)
             .add_property_mapping(
-                "concept", TEST.CenterEvent.conceptProperty, TEST.Concept1, LinkingStrategyEnum.IDEquals
+                "concept",
+                TEST.CenterEvent.conceptProperty,
+                TEST.Concept1,
+                LinkingStrategyEnum.IDEquals,
             )
-            .add_property_mapping("entity", TEST.CenterEvent.subject, TEST.Entity1, LinkingStrategyEnum.IDEquals)
+            .add_property_mapping(
+                "entity",
+                TEST.CenterEvent.subject,
+                TEST.Entity1,
+                LinkingStrategyEnum.IDEquals,
+            )
             .add_relation_mapping(
-                "event", TEST.CenterEvent.eventRelation, TEST.CenterEvent, LinkingStrategyEnum.IDEquals
+                "event",
+                TEST.CenterEvent.eventRelation,
+                TEST.CenterEvent,
+                LinkingStrategyEnum.IDEquals,
             )
         )
 
@@ -62,10 +73,16 @@ class Test(BuilderJob):
             .add_property_mapping("concept", TEST.Concept1.id)
             .add_property_mapping("concept", TEST.Concept1.name)
             .add_relation_mapping(
-                "lead_to_concept2", TEST.Concept1.leadTo, TEST.Concept2, LinkingStrategyEnum.IDEquals
+                "lead_to_concept2",
+                TEST.Concept1.leadTo,
+                TEST.Concept2,
+                LinkingStrategyEnum.IDEquals,
             )
             .add_relation_mapping(
-                "lead_to_concept3", TEST.Concept1.leadTo, TEST.Concept3, LinkingStrategyEnum.IDEquals
+                "lead_to_concept3",
+                TEST.Concept1.leadTo,
+                TEST.Concept3,
+                LinkingStrategyEnum.IDEquals,
             )
         )
 
