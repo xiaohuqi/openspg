@@ -29,8 +29,8 @@ class TaxOfCompanyEvent(BuilderJob):
 
         mapping = (
             SPGTypeMapping(spg_type_name=SupplyChain.TaxOfCompanyEvent)
-            .add_mapping_field("id", SupplyChain.TaxOfCompanyEvent.id)
-            .add_mapping_field("name", SupplyChain.TaxOfCompanyEvent.name)
+            .add_property_mapping("id", SupplyChain.TaxOfCompanyEvent.id)
+            .add_property_mapping("name", SupplyChain.TaxOfCompanyEvent.name)
         )
 
         sink = KGWriter()
