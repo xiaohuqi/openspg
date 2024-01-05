@@ -848,7 +848,7 @@ class SPGSchemaMarkLang:
             rule = head + rule
             rule += "\n}"
 
-        pattern = re.compile(r"\(([\w\s]*?:)([\w\s\.]+)\)", re.IGNORECASE)
+        pattern = re.compile(r"\(([\w\s]*?:)(`?[\w\s\.]+)`?/?[^)]*?\)", re.IGNORECASE)
         matches = re.findall(pattern, rule)
         replace_list = []
         if matches:
@@ -857,8 +857,9 @@ class SPGSchemaMarkLang:
                     continue
                 replace_list.append(
                     (
-                        f"({group[0]}{group[1]})",
-                        f"({group[0]}{self.namespace}.{group[1].strip()})",
+                        f"({group[0]}{group[1]}",
+                        f"({group[0]}{self.namespace}.{group[1].strip()}" if "`" not in group[1]
+                        else f"({group[0]}`{self.namespace}.{group[1].replace('`', '').strip()}",
                     )
                 )
         if len(replace_list) > 0:
