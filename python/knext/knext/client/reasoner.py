@@ -79,16 +79,6 @@ class ReasonerClient(Client):
             os.environ.get("KNEXT_GRAPH_STORE_URL") or lib.LOCAL_GRAPH_STORE_URL,
         ]
 
-        print_java_cmd = [
-            cmd if not cmd.startswith("{") else f"'{cmd}'" for cmd in java_cmd
-        ]
-        print_java_cmd = [
-            cmd if not cmd.count(";") > 0 else f"'{cmd}'" for cmd in print_java_cmd
-        ]
-        import json
-
-        print(json.dumps(" ".join(print_java_cmd))[1:-1].replace("'", '"'))
-
         subprocess.call(java_cmd)
 
     def run_dsl(self, dsl_content: str):

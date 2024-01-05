@@ -49,8 +49,7 @@ setup(
     name=package_name,
     version=version,
     description="knext",
-    author="jier",
-    author_email="qy266141@antgroup.com",
+    url="https://github.com/OpenSPG/openspg",
     packages=find_packages(
         where=".",
         exclude=[

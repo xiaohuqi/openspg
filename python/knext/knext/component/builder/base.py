@@ -90,21 +90,14 @@ class Mapping(BuilderComponent, ABC):
             elif y.spg_type_name in x.dependencies:
                 return 1
             else:
-                print(x.spg_type_name, y.spg_type_name)
                 return 0
 
         from knext import rest
-
         if len(mappings) == 1:
             return rest.SpgTypeMappingNodeConfigs(
                 mapping_node_configs=[m.to_rest().node_config for m in mappings]
             )
-
-        # for _ in range(len(mappings)):
         mappings = sorted(mappings, key=cmp_to_key(comparator))
-
-        print([s.spg_type_name for s in mappings])
-
         return rest.SpgTypeMappingNodeConfigs(
             mapping_node_configs=[m.to_rest().node_config for m in mappings]
         )

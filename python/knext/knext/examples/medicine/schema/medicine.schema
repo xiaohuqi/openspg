@@ -1,6 +1,7 @@
 namespace Medicine
 
 Symptom(症状): EntityType
+    desc: 这是一个症状
 
 Drug(药品): EntityType
 

@@ -9,7 +9,7 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied.
 
-from typing import Dict, List
+from typing import Dict
 
 from knext.api.operator import PromptOp
 
@@ -30,8 +30,4 @@ ${ner}
         template = self.template.replace("${input}", variables.get("input")).replace(
             "${ner}", variables.get("IndicatorNER")
         )
-        print("####################IndicatorREL(指标关系抽取)#####################")
-        print("LLM(Input): ")
-        print("----------------------")
-        print(template)
         return template

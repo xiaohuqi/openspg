@@ -11,7 +11,7 @@
 # or implied.
 
 import json
-from typing import Union, Dict, List, Sequence
+from typing import Dict, List, Sequence
 
 from knext.client.operator import OperatorClient
 from knext.common.runnable import Input, Output
@@ -19,7 +19,7 @@ from knext.component.builder.base import SPGExtractor
 from knext.operator.spg_record import SPGRecord
 from knext import rest
 from knext.operator.op import PromptOp, ExtractOp
-from nn4k.invoker import LLMInvoker
+from nn4k.invoker import NNInvoker
 
 
 class LLMBasedExtractor(SPGExtractor):
@@ -41,7 +41,7 @@ class LLMBasedExtractor(SPGExtractor):
     """
 
     """Knowledge extract operator of this component."""
-    llm: LLMInvoker
+    llm: NNInvoker
     """PromptOps."""
     prompt_ops: List[PromptOp]
 
