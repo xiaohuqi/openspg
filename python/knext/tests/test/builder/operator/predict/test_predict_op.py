@@ -15,9 +15,11 @@ from typing import List
 from knext.api.record import SPGRecord
 from knext.api.operator import PredictOp
 
+from schema.test_schema_helper import TEST
+
 
 class TestPredictOp(PredictOp):
-    bind_to = ("TEST.Entity1", "predictRelation", "TEST.Entity3")
+    bind_to = (TEST.Entity1, TEST.Entity1.predictRelation, TEST.Entity3)
 
     def invoke(self, subject_record: SPGRecord) -> List[SPGRecord]:
         print("####################TestPredictOp#####################")
@@ -26,17 +28,13 @@ class TestPredictOp(PredictOp):
         print(subject_record)
 
         predict_record = SPGRecord(
-            spg_type_name="TEST.Entity3",
+            spg_type_name=TEST.Entity3,
         )
-        predict_record.upsert_properties(
-            properties={
-                "id": "TestEntity3",
-                "name": "TestEntity3",
-            }
-        )
-        print(predict_record.to_dict())
+        predict_record.upsert_properties(properties={
+                "id": "entity3_312",
+                "name": "entity3_312",
+            })
         print("TestPredictOp(Output): ")
         print("----------------------")
         print([predict_record])
-
         return [predict_record]

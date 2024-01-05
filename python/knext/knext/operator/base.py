@@ -33,6 +33,7 @@ class BaseOp(ABC):
 
     _registry = {}
     _local_path: str
+    _module_path: str
     _version: int
     _has_registered: bool = False
 
@@ -63,7 +64,7 @@ class BaseOp(ABC):
         return output.to_dict()
 
     @classmethod
-    def register(cls, name: str, local_path: str):
+    def register(cls, name: str, local_path: str, module_path: str):
         """
         Register a class as subclass of BaseOp with name and local_path.
         After registration, the subclass object can be inspected by `BaseOp.by_name(op_name)`.
@@ -72,6 +73,7 @@ class BaseOp(ABC):
         def add_subclass_to_registry(subclass: Type["BaseOp"]):
             subclass.name = name
             subclass._local_path = local_path
+            subclass._module_path = module_path
             if name in cls._registry:
                 raise ValueError(
                     f"Operator [{name}] conflict in {subclass._local_path} and {cls.by_name(name)._local_path}."
@@ -99,9 +101,11 @@ class BaseOp(ABC):
             self._local_path = inspect.getfile(self.__class__)
         if not hasattr(self, "name"):
             self.name = self.__class__.__name__
+        if not hasattr(self, "_module_path"):
+            self._module_path = os.path.splitext(os.path.basename(self._local_path))[0]
         return rest.OperatorConfig(
             file_path=self._local_path,
-            module_path=os.path.splitext(os.path.basename(self._local_path))[0],
+            module_path=self._module_path,
             class_name=self.name,
             method="_handle",
             params=self.params,
