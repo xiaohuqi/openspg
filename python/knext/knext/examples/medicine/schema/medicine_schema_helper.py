@@ -15,52 +15,84 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class Medicine:
+    
     class BodyPart(SPGTypeHelper):
-        description = PropertyHelper("description")
+        
+    
         id = PropertyHelper("id")
-        name = PropertyHelper("name")
+        description = PropertyHelper("description")
         stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
-    class Disease(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
         name = PropertyHelper("name")
-        applicableDrug = PropertyHelper("applicableDrug")
-        department = PropertyHelper("department")
+    
+    
+    
+    class Disease(SPGTypeHelper):
+        
+        class abnormal(RelationHelper):
+            range = PropertyHelper("range")
+            shape = PropertyHelper("shape")
+            color = PropertyHelper("color")
+    
+        id = PropertyHelper("id")
         commonSymptom = PropertyHelper("commonSymptom")
+        description = PropertyHelper("description")
         diseaseSite = PropertyHelper("diseaseSite")
         complication = PropertyHelper("complication")
-
+        applicableDrug = PropertyHelper("applicableDrug")
+        department = PropertyHelper("department")
+        name = PropertyHelper("name")
+    
+    
+        abnormal = abnormal("abnormal")
+    
     class Drug(SPGTypeHelper):
-        description = PropertyHelper("description")
+        
+    
         id = PropertyHelper("id")
+        description = PropertyHelper("description")
         name = PropertyHelper("name")
-
+    
+    
+    
     class HospitalDepartment(SPGTypeHelper):
-        description = PropertyHelper("description")
+        
+    
         id = PropertyHelper("id")
-        name = PropertyHelper("name")
+        description = PropertyHelper("description")
         stdId = PropertyHelper("stdId")
         alias = PropertyHelper("alias")
-
+        name = PropertyHelper("name")
+    
+    
+    
     class Indicator(SPGTypeHelper):
-        description = PropertyHelper("description")
+        
+    
         id = PropertyHelper("id")
+        description = PropertyHelper("description")
         name = PropertyHelper("name")
-
+    
+    
+    
     class Symptom(SPGTypeHelper):
-        description = PropertyHelper("description")
+        
+    
         id = PropertyHelper("id")
+        description = PropertyHelper("description")
         name = PropertyHelper("name")
-
+    
+    
+    
     BodyPart = BodyPart("Medicine.BodyPart")
     Disease = Disease("Medicine.Disease")
     Drug = Drug("Medicine.Drug")
     HospitalDepartment = HospitalDepartment("Medicine.HospitalDepartment")
     Indicator = Indicator("Medicine.Indicator")
     Symptom = Symptom("Medicine.Symptom")
+    
+    pass

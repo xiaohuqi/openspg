@@ -15,6 +15,8 @@ from typing import Dict, List
 from knext.operator.op import PromptOp
 from knext.operator.spg_record import SPGRecord
 
+from schema.finance_schema_helper import Finance
+
 
 class IndicatorNER(PromptOp):
     template = """
@@ -29,10 +31,6 @@ ${input}
 
     def build_prompt(self, variables: Dict[str, str]):
         template = self.template.replace("${input}", variables.get("input"))
-        print("####################IndicatorNER(指标抽取)#####################")
-        print("LLM(Input): ")
-        print("----------------------")
-        print(template)
         return template
 
     def parse_response(self, response: str) -> List[SPGRecord]:
@@ -42,9 +40,6 @@ ${input}
             for category, indicator_list in output.items():
                 for indicator in indicator_list:
                     ner_result.append(
-                        SPGRecord(
-                            "Finance.Indicator",
-                            properties={"id": indicator, "name": indicator},
-                        )
+                        SPGRecord(Finance.Indicator).upsert_property("id", indicator).upsert_property("name", indicator)
                     )
         return ner_result

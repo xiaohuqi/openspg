@@ -15,6 +15,8 @@ from typing import Dict, List
 from knext.operator.op import PromptOp
 from knext.operator.spg_record import SPGRecord
 
+from schema.finance_schema_helper import Finance
+
 
 class IndicatorLogic(PromptOp):
     template = """
@@ -36,10 +38,7 @@ ${rel}
             .replace("${ner}", variables.get("IndicatorNER"))
             .replace("${rel}", variables.get("IndicatorREL"))
         )
-        print("####################IndicatorLOGIC(状态逻辑抽取)#####################")
-        print("LLM(Input): ")
-        print("----------------------")
-        print(template)
+
         return template
 
     def parse_response(self, response: str) -> List[SPGRecord]:
@@ -47,12 +46,11 @@ ${rel}
 
         logic_result = []
         for output in output_list:
-            properties = {}
+            result = SPGRecord(Finance.State)
             for k, v in output.items():
                 if k == "subject":
-                    properties["id"] = v
-                    properties["name"] = v
+                    result.upsert_property("id", v).upsert_property("name", v)
                 elif k == "object":
-                    properties["causes"] = ",".join(v)
-            logic_result.append(SPGRecord("Finance.State", properties=properties))
+                    result.upsert_relation("causes", Finance.State, ','.join(v))
+            logic_result.append(result)
         return logic_result

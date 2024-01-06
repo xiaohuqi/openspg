@@ -13,11 +13,9 @@
 
 from schema.finance_schema_helper import Finance
 
-from knext.api.component import CSVReader, LLMBasedExtractor, KGWriter, SubGraphMapping
+from knext.api.component import CSVReader, LLMBasedExtractor, KGWriter, SPGTypeMapping
 from knext.client.model.builder_job import BuilderJob
 from nn4k.invoker import LLMInvoker
-
-from knext.component.builder import SPGTypeMapping
 
 
 class Company(BuilderJob):
@@ -31,7 +29,6 @@ class Company(BuilderJob):
         prompt = REPrompt(
             spg_type_name=Finance.Company,
             property_names=[
-                Finance.Company.name,
                 Finance.Company.orgCertNo,
                 Finance.Company.regArea,
                 Finance.Company.businessScope,
@@ -47,29 +44,11 @@ class Company(BuilderJob):
             prompt_ops=[prompt],
         )
 
-        mapping = (
-            SPGTypeMapping(spg_type_name=Finance.Company)
-            # .add_sub_property_mapping("sub1", Finance.Company.belongTo.score2, Finance.Person, [])   score1
-            # .add_sub_property_mapping("sub2", Finance.Company.belongTo, Finance.Cert)    score2
-        )
+        mappings = [
+            SPGTypeMapping(spg_type_name=Finance.Company),
+            SPGTypeMapping(spg_type_name=Finance.AdministrativeArea)
+        ]
 
         sink = KGWriter()
 
-        return source >> extract >> mapping >> sink
-
-
-if __name__ == "__main__":
-    from knext.api.auto_prompt import REPrompt
-
-    prompt = REPrompt(
-        spg_type_name=Finance.Company,
-        property_names=[
-            Finance.Company.orgCertNo,
-            Finance.Company.regArea,
-            Finance.Company.businessScope,
-            Finance.Company.establishDate,
-            Finance.Company.legalPerson,
-            Finance.Company.regCapital,
-        ],
-    )
-    print(prompt.template)
+        return source >> extract >> mappings >> sink

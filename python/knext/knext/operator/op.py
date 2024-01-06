@@ -69,8 +69,6 @@ class LinkOp(BaseOp, ABC):
             output = [SPGRecord(spg_type_name=self.bind_to).upsert_property("id", cache_property)]
         else:
             output = self.invoke(_property, subject_record)
-        print("jierlink")
-        print(output)
         post_output = self._post_process(output)
         return post_output
 
@@ -119,11 +117,10 @@ class FuseOp(BaseOp, ABC):
             cache_key = str(self.bind_to) + record.get_property("id", "")
             linked_records = self.link(record)
             merged_records = self.merge(record, linked_records)
+            merged_records = list(filter(None.__ne__, merged_records))
             if merged_records:
                 cache.put(cache_key, ','.join([_r.get_property("id", "") for _r in merged_records]))
             records.extend(merged_records)
-        print("jierfuse")
-        print(records)
         return records
 
     @staticmethod
@@ -137,7 +134,6 @@ class FuseOp(BaseOp, ABC):
         if isinstance(output, tuple):
             return InvokeResult[List[SPGRecord]](*output[:3]).to_dict()
         else:
-            print(output)
             return InvokeResult[List[SPGRecord]](output).to_dict()
 
 

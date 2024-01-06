@@ -15,65 +15,92 @@
 # PLEASE DO NOT MODIFY THIS FILE!!!
 #
 
-from knext.common.schema_helper import SPGTypeHelper, PropertyHelper
+from knext.common.schema_helper import SPGTypeHelper, PropertyHelper, RelationHelper
 
 
 class Finance:
+    
     class AdministrativeArea(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
+        
+    
         name = PropertyHelper("name")
+        id = PropertyHelper("id")
         stdId = PropertyHelper("stdId")
+        description = PropertyHelper("description")
         alias = PropertyHelper("alias")
-
+    
+    
+    
     class AreaRiskEvent(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
+        
+    
         name = PropertyHelper("name")
+        id = PropertyHelper("id")
         subject = PropertyHelper("subject")
-        object = PropertyHelper("object")
         eventTime = PropertyHelper("eventTime")
-
+        description = PropertyHelper("description")
+        object = PropertyHelper("object")
+    
+    
+    
     class Company(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
-        name = PropertyHelper("name")
-        orgCertNo = PropertyHelper("orgCertNo")
-        regCapital = PropertyHelper("regCapital")
-        legalPerson = PropertyHelper("legalPerson")
+        
+    
         regArea = PropertyHelper("regArea")
-        establishDate = PropertyHelper("establishDate")
+        name = PropertyHelper("name")
         businessScope = PropertyHelper("businessScope")
-
+        id = PropertyHelper("id")
+        regCapital = PropertyHelper("regCapital")
+        description = PropertyHelper("description")
+        legalPerson = PropertyHelper("legalPerson")
+        orgCertNo = PropertyHelper("orgCertNo")
+        establishDate = PropertyHelper("establishDate")
+    
+    
+    
     class CompanyEvent(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
+        
+    
         name = PropertyHelper("name")
-        eventTime = PropertyHelper("eventTime")
-        subject = PropertyHelper("subject")
         location = PropertyHelper("location")
+        id = PropertyHelper("id")
         happenedTime = PropertyHelper("happenedTime")
+        subject = PropertyHelper("subject")
+        eventTime = PropertyHelper("eventTime")
+        description = PropertyHelper("description")
         object = PropertyHelper("object")
-
+    
+    
+    
     class Indicator(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
+        
+    
         name = PropertyHelper("name")
+        id = PropertyHelper("id")
         stdId = PropertyHelper("stdId")
+        description = PropertyHelper("description")
         alias = PropertyHelper("alias")
-
+    
+    
+    
     class State(SPGTypeHelper):
-        description = PropertyHelper("description")
-        id = PropertyHelper("id")
+        
+    
         name = PropertyHelper("name")
-        derivedFrom = PropertyHelper("derivedFrom")
-        causes = PropertyHelper("causes")
+        id = PropertyHelper("id")
         stdId = PropertyHelper("stdId")
+        description = PropertyHelper("description")
         alias = PropertyHelper("alias")
-
+    
+        derivedFrom = RelationHelper("derivedFrom")
+        causes = RelationHelper("causes")
+    
+    
     AdministrativeArea = AdministrativeArea("Finance.AdministrativeArea")
     AreaRiskEvent = AreaRiskEvent("Finance.AreaRiskEvent")
     Company = Company("Finance.Company")
     CompanyEvent = CompanyEvent("Finance.CompanyEvent")
     Indicator = Indicator("Finance.Indicator")
     State = State("Finance.State")
+    
+    pass

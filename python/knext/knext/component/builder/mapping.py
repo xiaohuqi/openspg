@@ -270,6 +270,16 @@ class SPGTypeMapping(Mapping):
         """
         Transforms `SPGTypeMapping` to REST model `SpgTypeMappingNodeConfig`.
         """
+        if not self._property_mapping and not self._relation_mapping:
+            for _rel in self.spg_type.relations.values():
+                if _rel.is_dynamic:
+                    continue
+                self.add_relation_mapping(_rel.name, _rel.name, _rel.object_type_name)
+            for _prop in self.spg_type.properties.values():
+                self.add_property_mapping(_prop.name, _prop.name)
+
+        if "id" not in [triplet_name[1] for triplet_name in {**self._property_mapping, **self._relation_mapping}.keys()]:
+            raise ValueError(f"Must include mapping to Property [id] in SPGTypeMapping({self.spg_type_name}).")
 
         mapping_filters = [
             rest.MappingFilter(column_name=name, column_value=value)

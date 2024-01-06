@@ -12,76 +12,51 @@
 
 from nn4k.invoker import LLMInvoker
 
-from knext.api.component import CSVReader, LLMBasedExtractor, SubGraphMapping, KGWriter
+from knext.api.component import CSVReader, LLMBasedExtractor, SPGTypeMapping, KGWriter
+from knext.api.auto_prompt import REPrompt
 from knext.client.model.builder_job import BuilderJob
+
+
+from schema.medicine_schema_helper import Medicine
 
 
 class Disease(BuilderJob):
     def build(self):
-        """
-        1. 定义输入源，CSV文件
-        """
+
         source = CSVReader(
             local_path="builder/job/data/Disease.csv",
             columns=["input"],
             start_row=1,
         )
 
-        """
-        2. 定义大模型抽取组件，从长文本中抽取Medicine.Disease类型实体
-        """
         extract = LLMBasedExtractor(
             llm=LLMInvoker.from_config("builder/model/openai_infer.json"),
             prompt_ops=[
                 REPrompt(
-                    spg_type_name="Medicine.Disease",
+                    spg_type_name=Medicine.Disease,
                     property_names=[
-                        "complication",
-                        "commonSymptom",
-                        "applicableDrug",
-                        "department",
-                        "diseaseSite",
+                        Medicine.Disease.complication,
+                        Medicine.Disease.commonSymptom,
+                        Medicine.Disease.applicableDrug,
+                        Medicine.Disease.department,
+                        Medicine.Disease.diseaseSite,
                     ],
+                    relation_names=[
+                        (Medicine.Disease.abnormal, Medicine.Indicator)
+                    ]
                 )
             ],
         )
 
-        """
-        2. 定义子图映射组件
-        """
-        mapping = (
-            SubGraphMapping(spg_type_name="Medicine.Disease")
-            .add_mapping_field("id", "id")
-            .add_mapping_field("name", "name")
-            .add_mapping_field("complication", "complication")
-            .add_mapping_field("commonSymptom", "commonSymptom")
-            .add_mapping_field("applicableDrug", "applicableDrug")
-            .add_mapping_field("department", "department")
-            .add_mapping_field("diseaseSite", "diseaseSite")
-        )
+        mappings = [
+            SPGTypeMapping(spg_type_name=Medicine.Disease),
+            SPGTypeMapping(spg_type_name=Medicine.BodyPart),
+            SPGTypeMapping(spg_type_name=Medicine.Drug),
+            SPGTypeMapping(spg_type_name=Medicine.HospitalDepartment),
+            SPGTypeMapping(spg_type_name=Medicine.Symptom),
+            SPGTypeMapping(spg_type_name=Medicine.Indicator),
+            ]
 
-        """
-        4. 定义输出到图谱
-        """
         sink = KGWriter()
 
-        """
-        5. 定义builder_chain
-        """
-        return source >> extract >> mapping >> sink
-
-
-if __name__ == "__main__":
-    from knext.api.auto_prompt import REPrompt
-
-    prompt = REPrompt(
-        spg_type_name="Medicine.Disease",
-        property_names=[
-            "complication",
-            "commonSymptom",
-            "applicableDrug",
-            "department",
-            "diseaseSite",
-        ],
-    )
-    print(prompt.template)
+        return source >> extract >> mappings >> sink
